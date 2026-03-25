@@ -1,10 +1,10 @@
-import { supabase } from "./supabase";
+import { getSupabase } from "./supabase";
 import type { Style, Selection, SelectionStatus, Memo } from "./types";
 
 const COLLECTION = "SP27-TALBOTS-OUTLET";
 
 export async function fetchStyles(): Promise<Style[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("styles")
     .select("*")
     .eq("collection", COLLECTION);
@@ -14,7 +14,7 @@ export async function fetchStyles(): Promise<Style[]> {
 }
 
 export async function fetchSelections(): Promise<Selection[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("selections")
     .select("*")
     .eq("collection", COLLECTION);
@@ -24,7 +24,7 @@ export async function fetchSelections(): Promise<Selection[]> {
 }
 
 export async function fetchMemos(): Promise<Memo[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("memos")
     .select("*")
     .eq("collection", COLLECTION)
@@ -40,7 +40,7 @@ export async function upsertSelection(
   userName: string,
   status: SelectionStatus
 ): Promise<Selection> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("selections")
     .upsert(
       {
@@ -66,7 +66,7 @@ export async function insertMemo(
   userName: string,
   content: string
 ): Promise<Memo> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from("memos")
     .insert({
       style_id: styleId,
