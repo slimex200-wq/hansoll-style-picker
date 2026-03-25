@@ -101,11 +101,12 @@ describe("upsertSelection", () => {
     chain.select.mockReturnValue(chain);
     mockFrom.mockReturnValue(chain);
 
-    const result = await upsertSelection("S1", "U1", "Alice", "shortlist");
+    const result = await upsertSelection("S1", "COL1", "U1", "Alice", "shortlist");
     expect(result).toEqual(saved);
     expect(chain.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         style_id: "S1",
+        collection: "COL1",
         user_id: "U1",
         user_name: "Alice",
         status: "shortlist",
@@ -122,7 +123,7 @@ describe("upsertSelection", () => {
     mockFrom.mockReturnValue(chain);
 
     await expect(
-      upsertSelection("S1", "U1", "Alice", "shortlist")
+      upsertSelection("S1", "COL1", "U1", "Alice", "shortlist")
     ).rejects.toThrow("Failed to save selection");
   });
 });
@@ -136,11 +137,12 @@ describe("insertMemo", () => {
     chain.select.mockReturnValue(chain);
     mockFrom.mockReturnValue(chain);
 
-    const result = await insertMemo("S1", "U1", "Alice", "Test");
+    const result = await insertMemo("S1", "COL1", "U1", "Alice", "Test");
     expect(result).toEqual(saved);
     expect(chain.insert).toHaveBeenCalledWith(
       expect.objectContaining({
         style_id: "S1",
+        collection: "COL1",
         user_id: "U1",
         user_name: "Alice",
         content: "Test",
@@ -156,7 +158,7 @@ describe("insertMemo", () => {
     mockFrom.mockReturnValue(chain);
 
     await expect(
-      insertMemo("S1", "U1", "Alice", "Test")
+      insertMemo("S1", "COL1", "U1", "Alice", "Test")
     ).rejects.toThrow("Failed to save memo");
   });
 });

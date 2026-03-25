@@ -36,6 +36,7 @@ const mockStyles = [
   {
     id: "STYLE-001",
     collection: "SP27-TALBOTS-OUTLET",
+    division: "Knit Top",
     fabric_no: "FL001",
     contents: "100% Cotton",
     construction: "Jersey",
@@ -122,7 +123,7 @@ describe("Home", () => {
 
     await userEvent.click(screen.getByText("Shortlist"));
 
-    expect(upsertSelection).toHaveBeenCalledWith("STYLE-001", "user-123", "Alice", "shortlist");
+    expect(upsertSelection).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "shortlist");
   });
 
   it("handles memo addition via DetailDrawer", async () => {
@@ -147,7 +148,7 @@ describe("Home", () => {
     await userEvent.type(textarea, "Nice fabric");
     await userEvent.click(screen.getByText("Send"));
 
-    expect(insertMemo).toHaveBeenCalledWith("STYLE-001", "user-123", "Alice", "Nice fabric");
+    expect(insertMemo).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "Nice fabric");
   });
 
   it("shows Summary link", async () => {

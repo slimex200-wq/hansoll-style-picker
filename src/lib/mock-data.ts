@@ -6,6 +6,7 @@ export const MOCK_STYLES: Style[] = [
   {
     id: "HDW127182",
     collection: COLLECTION,
+    division: "Knit Top",
     fabric_no: "FL25112486",
     contents: "100% Cotton",
     construction: "Pointelle",
@@ -23,6 +24,7 @@ export const MOCK_STYLES: Style[] = [
   {
     id: "HDW127079",
     collection: COLLECTION,
+    division: "Knit Top",
     fabric_no: "HS-1027-H",
     contents: "100% Cotton",
     construction: "Single Jersey",
@@ -40,6 +42,7 @@ export const MOCK_STYLES: Style[] = [
   {
     id: "HDW126208",
     collection: COLLECTION,
+    division: "Knit Top",
     fabric_no: "FL24022159",
     contents: "71/15/14 Cotton/Modal/Polyester",
     construction: "French Terry",
@@ -57,6 +60,7 @@ export const MOCK_STYLES: Style[] = [
   {
     id: "HMW320041",
     collection: COLLECTION,
+    division: "Knit Top",
     fabric_no: "",
     contents: "63/34/3 Cotton/Polyester/Spandex",
     construction: "Single Jacquard",
@@ -74,6 +78,7 @@ export const MOCK_STYLES: Style[] = [
   {
     id: "HMW326235",
     collection: COLLECTION,
+    division: "Knit Top",
     fabric_no: "",
     contents: "100% Rayon",
     construction: "Quilt Jacquard",

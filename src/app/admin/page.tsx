@@ -69,18 +69,34 @@ export default function AdminPage() {
               SP&apos;27 Talbots Outlet &middot; {uniqueUsers} reviewer{uniqueUsers !== 1 ? "s" : ""}
             </div>
           </div>
-          <a
-            href="/"
-            className="text-[13px] text-[#E85D2A] border border-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
-          >
-            Back
-          </a>
+          <div className="flex gap-2">
+            <a
+              href="/admin/upload"
+              className="text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
+            >
+              Upload PDF
+            </a>
+            <a
+              href="/"
+              className="text-[13px] text-[#E85D2A] border border-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
+            >
+              Back
+            </a>
+          </div>
         </div>
       </header>
 
       <main className="max-w-[800px] mx-auto p-4">
-        <div className="space-y-3">
-          {styles.map((style) => {
+        {[...new Set(styles.map((s) => s.division))].map((division) => (
+          <section key={division} className="mb-6">
+            <h2 className="text-[14px] font-semibold text-[#333] mb-2">
+              {division}{" "}
+              <span className="font-normal text-[#888]">
+                ({styles.filter((s) => s.division === division).length})
+              </span>
+            </h2>
+            <div className="space-y-3">
+          {styles.filter((s) => s.division === division).map((style) => {
             const { counts, total } = getVotesForStyle(style.id);
             const latestMemo = getLatestMemo(style.id);
             return (
@@ -132,7 +148,9 @@ export default function AdminPage() {
               </div>
             );
           })}
-        </div>
+            </div>
+          </section>
+        ))}
       </main>
     </>
   );

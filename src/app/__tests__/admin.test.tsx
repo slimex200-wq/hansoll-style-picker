@@ -7,6 +7,7 @@ const mockStyles: Style[] = [
   {
     id: "STYLE-001",
     collection: "SP27-TALBOTS-OUTLET",
+    division: "Knit Top",
     fabric_no: "FL001",
     contents: "100% Cotton",
     construction: "Jersey",

@@ -3,6 +3,7 @@ export type SelectionStatus = "shortlist" | "maybe" | "pass";
 export interface Style {
   id: string;
   collection: string;
+  division: string;
   fabric_no: string;
   contents: string;
   construction: string;

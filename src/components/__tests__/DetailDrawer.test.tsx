@@ -15,6 +15,7 @@ import { showToast } from "../Toast";
 const mockStyle: Style = {
   id: "HDW127182",
   collection: "SP27-TALBOTS-OUTLET",
+  division: "Knit Top",
   fabric_no: "FL25112486",
   contents: "100% Cotton",
   construction: "Pointelle",

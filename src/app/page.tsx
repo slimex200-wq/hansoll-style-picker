@@ -76,6 +76,8 @@ export default function Home() {
 
   const handleSelect = async (styleId: string, status: SelectionStatus) => {
     if (!userId || !userName) return;
+    const style = styles.find((s) => s.id === styleId);
+    if (!style) return;
     const key = getSelectionKey(styleId);
     const prev = selections.get(key);
     try {
@@ -85,7 +87,7 @@ export default function Home() {
         next.set(key, {
           id: prev?.id ?? "",
           style_id: styleId,
-          collection: "SP27-TALBOTS-OUTLET",
+          collection: style.collection,
           user_id: userId,
           user_name: userName,
           status,
@@ -94,7 +96,7 @@ export default function Home() {
         });
         return next;
       });
-      const saved = await upsertSelection(styleId, userId, userName, status);
+      const saved = await upsertSelection(styleId, style.collection, userId, userName, status);
       setSelections((map) => {
         const next = new Map(map);
         next.set(key, saved);
@@ -115,8 +117,10 @@ export default function Home() {
 
   const handleAddMemo = async (styleId: string, content: string) => {
     if (!userId || !userName) return;
+    const style = styles.find((s) => s.id === styleId);
+    if (!style) return;
     try {
-      const saved = await insertMemo(styleId, userId, userName, content);
+      const saved = await insertMemo(styleId, style.collection, userId, userName, content);
       setStyleMemos((prev) => {
         const next = new Map(prev);
         const existing = prev.get(styleId);
@@ -221,18 +225,34 @@ export default function Home() {
         </a>
       </header>
 
-      <main className="flex-1">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-4 max-w-[800px] mx-auto">
-          {styles.map((style) => (
-            <StyleCard
-              key={style.id}
-              style={style}
-              status={getStatusForStyle(style.id)}
-              memoCount={getMemoCountForStyle(style.id)}
-              onClick={() => setSelectedStyle(style)}
-            />
-          ))}
-        </div>
+      <main className="flex-1 max-w-[800px] mx-auto p-4">
+        {(() => {
+          const divisions = [...new Set(styles.map((s) => s.division))];
+          return divisions.map((division) => {
+            const divStyles = styles.filter((s) => s.division === division);
+            return (
+              <section key={division} className="mb-8">
+                <h2 className="text-[15px] font-semibold text-[#333] mb-3">
+                  {division}{" "}
+                  <span className="font-normal text-[12px] text-[#888]">
+                    ({divStyles.length})
+                  </span>
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {divStyles.map((style) => (
+                    <StyleCard
+                      key={style.id}
+                      style={style}
+                      status={getStatusForStyle(style.id)}
+                      memoCount={getMemoCountForStyle(style.id)}
+                      onClick={() => setSelectedStyle(style)}
+                    />
+                  ))}
+                </div>
+              </section>
+            );
+          });
+        })()}
       </main>
 
       {selectedStyle && (
