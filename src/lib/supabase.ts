@@ -12,3 +12,9 @@ export function getSupabase(): SupabaseClient {
   _supabase = createClient(url, key);
   return _supabase;
 }
+
+export function getStorageUrl(bucket: string, path: string): string {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) throw new Error("Supabase URL not configured");
+  return `${url}/storage/v1/object/public/${bucket}/${path}`;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import type { Style, Selection, Memo } from "@/lib/types";
 import { fetchStyles, fetchSelections, fetchMemos } from "@/lib/api";
 import { STATUS_CONFIG } from "@/lib/store";
@@ -39,7 +40,11 @@ export default function AdminPage() {
   };
 
   const getLatestMemo = (styleId: string): Memo | undefined => {
-    return memos.find((m) => m.style_id === styleId);
+    return memos.reduce<Memo | undefined>((latest, m) => {
+      if (m.style_id !== styleId) return latest;
+      if (!latest) return m;
+      return new Date(m.created_at) > new Date(latest.created_at) ? m : latest;
+    }, undefined);
   };
 
   const uniqueUsers = new Set(selections.map((s) => s.user_id)).size;
@@ -83,11 +88,13 @@ export default function AdminPage() {
                 key={style.id}
                 className="bg-white border border-[#eee] rounded-xl p-4 flex gap-4"
               >
-                <div className="w-20 h-[100px] bg-[#f0f0f0] rounded-lg flex-shrink-0 overflow-hidden">
-                  <img
+                <div className="w-20 h-[100px] bg-[#f0f0f0] rounded-lg flex-shrink-0 overflow-hidden relative">
+                  <Image
                     src={style.image_url}
                     alt={style.id}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
+                    sizes="80px"
                   />
                 </div>
                 <div className="flex-1 min-w-0">

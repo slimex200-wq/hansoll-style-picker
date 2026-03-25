@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { Style, SelectionStatus } from "@/lib/types";
 import { STATUS_CONFIG } from "@/lib/store";
 
@@ -24,10 +25,12 @@ export default function StyleCard({
     >
       <div className="relative w-full aspect-[3/4] bg-[#f0f0f0]">
         {style.image_url ? (
-          <img
+          <Image
             src={style.image_url}
             alt={`Style ${style.id}`}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 200px"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-[#aaa] text-xs">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import type { Style, SelectionStatus, Memo } from "@/lib/types";
 import { STATUS_CONFIG, formatTimeAgo } from "@/lib/store";
 import { showToast } from "./Toast";
@@ -9,22 +10,27 @@ interface DetailDrawerProps {
   style: Style;
   currentStatus: SelectionStatus | null;
   memos: Memo[];
+  hasMore?: boolean;
   onClose: () => void;
   onSelect: (styleId: string, status: SelectionStatus) => Promise<void>;
   onAddMemo: (styleId: string, content: string) => Promise<void>;
+  onLoadMore?: () => Promise<void>;
 }
 
 export default function DetailDrawer({
   style,
   currentStatus,
   memos,
+  hasMore = false,
   onClose,
   onSelect,
   onAddMemo,
+  onLoadMore,
 }: DetailDrawerProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [memoText, setMemoText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectingStatus, setSelectingStatus] = useState<SelectionStatus | null>(null);
 
   const handleKeyDown = useCallback(
@@ -105,10 +111,12 @@ export default function DetailDrawer({
           {/* Photo - large */}
           <div className="relative w-full aspect-[4/3] bg-[#f0f0f0] rounded-xl overflow-hidden mb-4 shrink-0">
             {photos[photoIndex] ? (
-              <img
+              <Image
                 src={photos[photoIndex]}
                 alt={`${style.id} photo ${photoIndex + 1}`}
-                className="w-full h-full object-contain"
+                fill
+                className="object-contain"
+                sizes="(max-width: 600px) 100vw, 600px"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-[#aaa]">
@@ -187,6 +195,22 @@ export default function DetailDrawer({
                     <div className="text-[12px] text-[#333] mt-0.5">{memo.content}</div>
                   </div>
                 ))}
+                {hasMore && onLoadMore && (
+                  <button
+                    onClick={async () => {
+                      setLoadingMore(true);
+                      try {
+                        await onLoadMore();
+                      } finally {
+                        setLoadingMore(false);
+                      }
+                    }}
+                    disabled={loadingMore}
+                    className="text-[12px] text-[#E85D2A] hover:text-[#d14e1f] py-1.5 transition-colors disabled:opacity-40"
+                  >
+                    {loadingMore ? "Loading..." : "Load earlier memos"}
+                  </button>
+                )}
               </div>
             )}
 

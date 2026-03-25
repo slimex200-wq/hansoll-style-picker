@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Style, SelectionStatus, Selection, Memo } from "@/lib/types";
 import { getUserId, getUserName, setUserName } from "@/lib/store";
-import { fetchStyles, fetchSelections, fetchMemos, upsertSelection, insertMemo } from "@/lib/api";
+import { fetchStyles, fetchSelections, fetchMemosByStyle, upsertSelection, insertMemo } from "@/lib/api";
 import StyleCard from "@/components/StyleCard";
 import DetailDrawer from "@/components/DetailDrawer";
 import NamePrompt from "@/components/NamePrompt";
@@ -16,15 +16,15 @@ export default function Home() {
   const [userId, setUserId] = useState<string | null>(null);
   const [styles, setStyles] = useState<Style[]>([]);
   const [selections, setSelections] = useState<Map<string, Selection>>(new Map());
-  const [memos, setMemos] = useState<Memo[]>([]);
   const [selectedStyle, setSelectedStyle] = useState<Style | null>(null);
+  const [styleMemos, setStyleMemos] = useState<Map<string, { memos: Memo[]; hasMore: boolean; offset: number }>>(new Map());
+  const [memoCounts, setMemoCounts] = useState<Map<string, number>>(new Map());
 
   const loadData = useCallback(async () => {
     try {
-      const [stylesData, selectionsData, memosData] = await Promise.all([
+      const [stylesData, selectionsData] = await Promise.all([
         fetchStyles(),
         fetchSelections(),
-        fetchMemos(),
       ]);
       setStyles(stylesData);
       const selMap = new Map<string, Selection>();
@@ -32,7 +32,23 @@ export default function Home() {
         selMap.set(`${s.style_id}:${s.user_id}`, s);
       }
       setSelections(selMap);
-      setMemos(memosData);
+
+      // Load initial memos for each style (first page)
+      const memoResults = await Promise.all(
+        stylesData.map((s) => fetchMemosByStyle(s.id, 20, 0))
+      );
+      const memoMap = new Map<string, { memos: Memo[]; hasMore: boolean; offset: number }>();
+      const countMap = new Map<string, number>();
+      stylesData.forEach((s, i) => {
+        memoMap.set(s.id, {
+          memos: memoResults[i].data,
+          hasMore: memoResults[i].hasMore,
+          offset: 0,
+        });
+        countMap.set(s.id, memoResults[i].data.length + (memoResults[i].hasMore ? 1 : 0));
+      });
+      setStyleMemos(memoMap);
+      setMemoCounts(countMap);
     } catch {
       showToast("Failed to load data", "error");
     } finally {
@@ -101,10 +117,44 @@ export default function Home() {
     if (!userId || !userName) return;
     try {
       const saved = await insertMemo(styleId, userId, userName, content);
-      setMemos((prev) => [saved, ...prev]);
+      setStyleMemos((prev) => {
+        const next = new Map(prev);
+        const existing = prev.get(styleId);
+        next.set(styleId, {
+          memos: [saved, ...(existing?.memos ?? [])],
+          hasMore: existing?.hasMore ?? false,
+          offset: existing?.offset ?? 0,
+        });
+        return next;
+      });
+      setMemoCounts((prev) => {
+        const next = new Map(prev);
+        next.set(styleId, (prev.get(styleId) ?? 0) + 1);
+        return next;
+      });
       showToast("Memo added", "success");
     } catch {
       showToast("Failed to save memo", "error");
+    }
+  };
+
+  const handleLoadMoreMemos = async (styleId: string) => {
+    const current = styleMemos.get(styleId);
+    const newOffset = (current?.offset ?? 0) + 20;
+    try {
+      const result = await fetchMemosByStyle(styleId, 20, newOffset);
+      setStyleMemos((prev) => {
+        const next = new Map(prev);
+        const existing = prev.get(styleId);
+        next.set(styleId, {
+          memos: [...(existing?.memos ?? []), ...result.data],
+          hasMore: result.hasMore,
+          offset: newOffset,
+        });
+        return next;
+      });
+    } catch {
+      showToast("Failed to load more memos", "error");
     }
   };
 
@@ -114,13 +164,15 @@ export default function Home() {
   };
 
   const getMemoCountForStyle = (styleId: string): number => {
-    return memos.filter((m) => m.style_id === styleId).length;
+    return memoCounts.get(styleId) ?? 0;
   };
 
   const getMemosForStyle = (styleId: string): Memo[] => {
-    return memos
-      .filter((m) => m.style_id === styleId)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return styleMemos.get(styleId)?.memos ?? [];
+  };
+
+  const getHasMoreMemos = (styleId: string): boolean => {
+    return styleMemos.get(styleId)?.hasMore ?? false;
   };
 
   const reviewedCount = userId
@@ -188,9 +240,11 @@ export default function Home() {
           style={selectedStyle}
           currentStatus={getStatusForStyle(selectedStyle.id)}
           memos={getMemosForStyle(selectedStyle.id)}
+          hasMore={getHasMoreMemos(selectedStyle.id)}
           onClose={() => setSelectedStyle(null)}
           onSelect={handleSelect}
           onAddMemo={handleAddMemo}
+          onLoadMore={() => handleLoadMoreMemos(selectedStyle.id)}
         />
       )}
 

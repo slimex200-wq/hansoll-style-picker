@@ -60,6 +60,31 @@ export async function upsertSelection(
   return data as Selection;
 }
 
+export interface PaginatedMemos {
+  data: Memo[];
+  hasMore: boolean;
+}
+
+export async function fetchMemosByStyle(
+  styleId: string,
+  limit: number = 20,
+  offset: number = 0
+): Promise<PaginatedMemos> {
+  const { data, error, count } = await getSupabase()
+    .from("memos")
+    .select("*", { count: "exact" })
+    .eq("collection", COLLECTION)
+    .eq("style_id", styleId)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) throw new Error(`Failed to fetch memos: ${error.message}`);
+  return {
+    data: data as Memo[],
+    hasMore: (count ?? 0) > offset + limit,
+  };
+}
+
 export async function insertMemo(
   styleId: string,
   userId: string,
