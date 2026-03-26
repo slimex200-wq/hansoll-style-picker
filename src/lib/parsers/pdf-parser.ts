@@ -1,6 +1,26 @@
 import type { ParseResult } from "./types";
 import { parseMarkdownStyles } from "./markdown-parser";
 
+// Vercel serverless에서 DOMMatrix가 없으면 polyfill
+if (typeof globalThis.DOMMatrix === "undefined") {
+  // pdfjs text extraction은 DOMMatrix를 실제로 사용하지 않지만 import 시 참조함
+  // 최소 stub으로 충분
+  (globalThis as Record<string, unknown>).DOMMatrix = class DOMMatrix {
+    a = 1; b = 0; c = 0; d = 1; e = 0; f = 0;
+    constructor(init?: number[]) {
+      if (init && init.length >= 6) {
+        [this.a, this.b, this.c, this.d, this.e, this.f] = init;
+      }
+    }
+    isIdentity = true;
+    inverse() { return new DOMMatrix(); }
+    multiply() { return new DOMMatrix(); }
+    translate() { return new DOMMatrix(); }
+    scale() { return new DOMMatrix(); }
+    transformPoint(p: { x: number; y: number }) { return p; }
+  };
+}
+
 interface PdfPage {
   getTextContent: () => Promise<{
     items: Array<{ str?: string }>;
