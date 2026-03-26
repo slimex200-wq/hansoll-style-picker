@@ -37,9 +37,15 @@ export async function parsePdfBuffer(
   options?: { defaultCollection?: string; defaultDivision?: string }
 ): Promise<ParseResult> {
   const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "";
 
-  const doc = (await pdfjsLib.getDocument({ data: buffer, isEvalSupported: false, useWorkerFetch: false, useSystemFonts: false }).promise) as unknown as PdfDocument;
+  // Vercel serverless: worker 파일 경로를 file:// URL로 지정
+  const { createRequire } = await import("module");
+  const { pathToFileURL } = await import("url");
+  const req = createRequire(import.meta.url);
+  const workerPath = req.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
+
+  const doc = (await pdfjsLib.getDocument({ data: buffer }).promise) as unknown as PdfDocument;
 
   // 1) Extract text from all pages
   const pageTexts: string[] = [];
