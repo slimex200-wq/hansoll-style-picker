@@ -1,5 +1,6 @@
 import type { ParseResult, ParsedImage } from "./types";
 import { parseMarkdownStyles } from "./markdown-parser";
+import { encodeRgbaToPng } from "./png-encoder";
 
 interface PdfPage {
   getTextContent: () => Promise<{
@@ -120,8 +121,9 @@ async function extractImagesFromPdf(
           try {
             const imgData = page.commonObjs.get(imgName);
             if (imgData && imgData.data && imgData.width > 50 && imgData.height > 50) {
+              const pngData = encodeRgbaToPng(imgData.data, imgData.width, imgData.height);
               images.push({
-                data: imgData.data,
+                data: pngData,
                 mimeType: "image/png",
                 filename: `page-${i}-${j}.png`,
                 pageIndex: i - 1,

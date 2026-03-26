@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import JSZip from "jszip";
 import { parseMarkdownStyles } from "@/lib/parsers/markdown-parser";
+import { uploadTempImage } from "@/lib/storage";
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
@@ -41,7 +43,6 @@ export async function POST(request: Request) {
     );
 
     // Build an image index from the markdown references
-    // opendataloader-pdf uses: ![image N](folder/imageFileN.png)
     const imageRefPattern = /!\[image \d+\]\(([^)]+)\)/g;
     const imageRefs: Array<{ ref: string; position: number }> = [];
     let match: RegExpExecArray | null;
@@ -55,7 +56,6 @@ export async function POST(request: Request) {
       return { styleId: s.style_id, position: pos };
     });
 
-    // Map: find the image ref closest before each style
     const styleImages: Record<string, string[]> = {};
     for (const sp of stylePositions) {
       const nearbyImages = imageRefs
@@ -66,29 +66,55 @@ export async function POST(request: Request) {
       }
     }
 
-    // Convert image file data to base64 thumbnails for preview
-    const imagePreview: Record<string, Array<{ filename: string; dataUrl: string }>> = {};
+    // Upload images to Supabase Storage and collect URLs per style
+    const sessionId = randomUUID();
+    const styleImageUrls: Record<string, string[]> = {};
+
     for (const [styleId, refs] of Object.entries(styleImages)) {
-      imagePreview[styleId] = [];
-      for (const ref of refs) {
-        // Find matching file in zip (the ref path might be relative)
+      styleImageUrls[styleId] = [];
+      for (let i = 0; i < refs.length; i++) {
+        const ref = refs[i];
         const zipKey = imageFiles.find((f) => f.endsWith(ref.split("/").pop()!));
-        if (zipKey) {
-          const imgData = await zip.files[zipKey].async("base64");
-          const ext = zipKey.toLowerCase().endsWith(".png") ? "png" : "jpeg";
-          imagePreview[styleId].push({
-            filename: zipKey,
-            dataUrl: `data:image/${ext};base64,${imgData}`,
-          });
+        if (!zipKey) continue;
+        try {
+          const imgData = await zip.files[zipKey].async("uint8array");
+          const ext = zipKey.toLowerCase().endsWith(".png") ? "png" : "jpg";
+          const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+          const url = await uploadTempImage(
+            imgData,
+            mimeType,
+            sessionId,
+            `${styleId}-${i}.${ext}`
+          );
+          styleImageUrls[styleId].push(url);
+        } catch {
+          // Skip failed uploads
         }
       }
     }
 
+    // Build response with image URLs per style
+    const stylesWithUrls = result.styles.map((s) => ({
+      style_id: s.style_id,
+      fabric_no: s.fabric_no,
+      contents: s.contents,
+      construction: s.construction,
+      weight: s.weight,
+      finishing: s.finishing,
+      designed_by: s.designed_by,
+      division: s.division,
+      collection: s.collection,
+      fabric_suggestion: s.fabric_suggestion,
+      image_urls: styleImageUrls[s.style_id] ?? [],
+    }));
+
     return NextResponse.json({
-      ...result,
-      imagePreview,
+      styles: stylesWithUrls,
+      errors: result.errors,
+      warnings: result.warnings,
       metadata: {
         ...result.metadata,
+        sessionId,
         imageCount: imageFiles.length,
       },
     });

@@ -1,10 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import type { ParsedStyle } from "@/lib/parsers/types";
 
-interface PreviewStyle extends Omit<ParsedStyle, "images"> {
-  images: Array<{ filename: string; hasData?: boolean }>;
+interface PreviewStyle {
+  style_id: string;
+  fabric_no: string;
+  contents: string;
+  construction: string;
+  weight: string;
+  finishing: string;
+  designed_by: string;
+  division: string;
+  collection: string;
+  fabric_suggestion: {
+    fabric_no: string;
+    construction: string;
+    contents: string;
+    weight: string;
+  } | null;
+  image_urls?: string[];
 }
 
 interface ParsePreviewProps {
@@ -104,6 +118,7 @@ export default function ParsePreview({
                     <th className="p-2 text-left text-[#888] font-medium">Style</th>
                     <th className="p-2 text-left text-[#888] font-medium hidden sm:table-cell">Fabric</th>
                     <th className="p-2 text-left text-[#888] font-medium hidden md:table-cell">Construction</th>
+                    <th className="p-2 text-left text-[#888] font-medium">Images</th>
                     <th className="p-2 text-left text-[#888] font-medium">Designed By</th>
                   </tr>
                 </thead>
@@ -124,6 +139,13 @@ export default function ParsePreview({
                       <td className="p-2 font-medium text-[#333]">{style.style_id}</td>
                       <td className="p-2 text-[#666] hidden sm:table-cell">{style.fabric_no || "-"}</td>
                       <td className="p-2 text-[#666] hidden md:table-cell">{style.construction}</td>
+                      <td className="p-2 text-[#666]">
+                        {style.image_urls && style.image_urls.length > 0 ? (
+                          <span className="text-green-600">{style.image_urls.length}</span>
+                        ) : (
+                          <span className="text-[#aaa]">0</span>
+                        )}
+                      </td>
                       <td className="p-2 text-[#666]">{style.designed_by}</td>
                     </tr>
                   ))}

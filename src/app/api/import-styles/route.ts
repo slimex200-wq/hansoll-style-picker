@@ -60,24 +60,30 @@ export async function POST(request: Request) {
     for (let i = 0; i < body.styles.length; i += batchSize) {
       const batch = body.styles.slice(i, i + batchSize);
 
-      const rows = batch.map((style) => ({
-        id: style.style_id,
-        collection: body.collection,
-        division: style.division,
-        fabric_no: style.fabric_no,
-        contents: style.contents,
-        construction: style.construction,
-        weight: style.weight,
-        finishing: style.finishing,
-        designed_by: style.designed_by,
-        image_url: style.image_urls?.[0] ?? "",
-        images: style.image_urls ?? [],
-        fabric_suggestion: style.fabric_suggestion,
-      }));
+      const rows = batch.map((style) => {
+        const row: Record<string, unknown> = {
+          id: style.style_id,
+          collection: body.collection,
+          division: style.division,
+          fabric_no: style.fabric_no,
+          contents: style.contents,
+          construction: style.construction,
+          weight: style.weight,
+          finishing: style.finishing,
+          designed_by: style.designed_by,
+          fabric_suggestion: style.fabric_suggestion,
+        };
+        // Only overwrite image fields when URLs are actually provided
+        if (style.image_urls && style.image_urls.length > 0) {
+          row.image_url = style.image_urls[0];
+          row.images = style.image_urls;
+        }
+        return row;
+      });
 
-      const { error, count } = await supabase
+      const { error } = await supabase
         .from("styles")
-        .upsert(rows, { onConflict: "id" });
+        .upsert(rows, { onConflict: "id", ignoreDuplicates: false });
 
       if (error) {
         for (const style of batch) {

@@ -25,7 +25,8 @@ interface ParsedData {
       contents: string;
       weight: string;
     } | null;
-    images: Array<{ filename: string; hasData?: boolean }>;
+    image_urls?: string[];
+    images?: Array<{ filename: string; hasData?: boolean }>;
   }>;
   errors: string[];
   warnings: string[];
@@ -120,6 +121,7 @@ export default function UploadPage() {
               designed_by: s.designed_by,
               division: s.division,
               fabric_suggestion: s.fabric_suggestion,
+              image_urls: s.image_urls,
             })),
           }),
         });
