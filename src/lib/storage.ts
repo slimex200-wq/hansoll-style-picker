@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { getSupabase, getStorageUrl } from "./supabase";
 
 function getServerSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -51,6 +52,26 @@ export async function uploadTempImage(
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   return `${url}/storage/v1/object/public/style-images/${path}`;
+}
+
+/** Browser에서 Blob을 Supabase Storage에 직접 업로드 */
+export async function uploadImageFromBrowser(
+  blob: Blob,
+  sessionId: string,
+  filename: string
+): Promise<string> {
+  const path = `temp/${sessionId}/${filename}`;
+
+  const { error } = await getSupabase()
+    .storage.from("style-images")
+    .upload(path, blob, {
+      contentType: blob.type,
+      upsert: true,
+    });
+
+  if (error) throw new Error(`Browser image upload failed: ${error.message}`);
+
+  return getStorageUrl("style-images", path);
 }
 
 export async function moveTempToFinal(

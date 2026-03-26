@@ -24,6 +24,8 @@ export interface ParsedStyle {
   collection: string;
   fabric_suggestion: ParsedFabricSuggestion | null;
   images: ParsedImage[];
+  /** 1-based page number where this style was found */
+  pageNum?: number;
 }
 
 export interface ParseResult {
