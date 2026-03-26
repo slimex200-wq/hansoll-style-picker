@@ -37,8 +37,9 @@ export async function parsePdfBuffer(
   options?: { defaultCollection?: string; defaultDivision?: string }
 ): Promise<ParseResult> {
   const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "";
 
-  const doc = (await pdfjsLib.getDocument({ data: buffer }).promise) as unknown as PdfDocument;
+  const doc = (await pdfjsLib.getDocument({ data: buffer, isEvalSupported: false, useWorkerFetch: false, useSystemFonts: false }).promise) as unknown as PdfDocument;
 
   // 1) Extract text from all pages
   const pageTexts: string[] = [];
