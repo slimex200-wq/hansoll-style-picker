@@ -245,22 +245,35 @@ export default function DetailDrawer({
         }
       `}</style>
 
-      {/* Overlay — fullscreen dark */}
+      {/* Overlay */}
       <div
         onClick={handleClose}
         aria-hidden="true"
         style={{
           position: "fixed", inset: 0, zIndex: 50,
-          background: "var(--surface)",
+          background: "rgba(0,0,0,0.4)",
+          backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
           animation: `${closing ? "modal-overlay-out 150ms ease-in both" : "modal-overlay-in 200ms ease-out both"}`,
         }}
       />
 
-      {/* ===== DESKTOP: fullscreen with sidebar ===== */}
+      {/* ===== DESKTOP: large modal with sidebar ===== */}
       <div className="modal-desktop"
+        style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, pointerEvents: "none" }}
+      >
+      <div
         role="dialog" aria-modal="true" aria-label={`Details for style ${style.id}`}
+        onClick={e => e.stopPropagation()}
         style={{
-          position: "fixed", inset: 0, zIndex: 60,
+          pointerEvents: "auto",
+          width: "100%", maxWidth: 1100, height: "90vh",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: 12,
+          boxShadow: "0 24px 80px rgba(0,0,0,0.15)",
+          overflow: "hidden",
+          display: "flex",
+          position: "relative",
           animation: `${closing ? "modal-out 150ms ease-in both" : "modal-in 250ms ease-out both"}`,
         }}
       >
@@ -271,10 +284,8 @@ export default function DetailDrawer({
           onMouseLeave={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text-muted)"; }}
         ><X size={20} /></button>
 
-        {/* Image area — fills remaining space */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40, minWidth: 0, background: "var(--bg)" }}
-          onClick={handleClose}
-        >
+        {/* Image area */}
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, minWidth: 0, background: "var(--bg)", borderRadius: "12px 0 0 12px" }}>
           <div onClick={e => e.stopPropagation()} style={{ position: "relative", width: "100%", height: "100%", maxWidth: 600 }}>
             {photos[photoIndex] ? (
               <Image src={photos[photoIndex]} alt={`${style.id} product image`} fill className="object-contain" sizes="60vw" />
@@ -324,6 +335,7 @@ export default function DetailDrawer({
             {navBar}
           </div>
         </div>
+      </div>
       </div>
 
       {/* ===== MOBILE: bottom sheet ===== */}
