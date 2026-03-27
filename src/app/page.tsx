@@ -262,18 +262,29 @@ export default function Home() {
         })()}
       </main>
 
-      {selectedStyle && (
-        <DetailDrawer
-          style={selectedStyle}
-          currentStatus={getStatusForStyle(selectedStyle.id)}
-          memos={getMemosForStyle(selectedStyle.id)}
-          hasMore={getHasMoreMemos(selectedStyle.id)}
-          onClose={() => setSelectedStyle(null)}
-          onSelect={handleSelect}
-          onAddMemo={handleAddMemo}
-          onLoadMore={() => handleLoadMoreMemos(selectedStyle.id)}
-        />
-      )}
+      {selectedStyle && (() => {
+        const idx = styles.findIndex((s) => s.id === selectedStyle.id);
+        return (
+          <DetailDrawer
+            style={selectedStyle}
+            currentStatus={getStatusForStyle(selectedStyle.id)}
+            memos={getMemosForStyle(selectedStyle.id)}
+            hasMore={getHasMoreMemos(selectedStyle.id)}
+            onClose={() => setSelectedStyle(null)}
+            onSelect={handleSelect}
+            onAddMemo={handleAddMemo}
+            onLoadMore={() => handleLoadMoreMemos(selectedStyle.id)}
+            styleIndex={idx}
+            totalStyles={styles.length}
+            prevStyleId={idx > 0 ? styles[idx - 1].id : undefined}
+            nextStyleId={idx < styles.length - 1 ? styles[idx + 1].id : undefined}
+            onNavigate={(dir) => {
+              const next = dir === "prev" ? styles[idx - 1] : styles[idx + 1];
+              if (next) setSelectedStyle(next);
+            }}
+          />
+        );
+      })()}
 
       <ToastContainer />
     </>
