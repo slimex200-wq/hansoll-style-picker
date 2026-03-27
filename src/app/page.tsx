@@ -185,8 +185,8 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "#FAF9F7" }}>
-        <p style={{ color: "#9B9590", fontSize: 14 }}>Loading...</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg)" }}>
+        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p>
       </div>
     );
   }
@@ -202,43 +202,46 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "#FAF9F7" }}>
-        <p style={{ color: "#9B9590", fontSize: 14 }}>Loading collection...</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg)" }}>
+        <p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading collection...</p>
       </div>
     );
   }
 
   return (
     <>
-      <header className="bg-white border-b border-[#E8E4E0] px-4 py-4 flex items-center justify-between sticky top-0 z-10">
+      <header style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)", borderRadius: "var(--radius-md)" }} className="px-4 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif" }} className="text-xl font-normal text-[#2C2C2C]">HANSOLL SP&apos;27</h1>
-          <div className="text-[13px] text-[#9B9590] mt-0.5">
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 400, color: "var(--text-primary)" }}>HANSOLL SP&apos;27</h1>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>
             Talbots Outlet &middot; {reviewedCount}/{styles.length} reviewed
           </div>
         </div>
         <a
           href="/admin"
-          className="text-[13px] text-[#C45A2D] border border-[#C45A2D] px-3 py-1.5 rounded-md hover:bg-[#FFF6F1] transition-colors"
+          style={{ fontSize: 13, color: "var(--accent)", border: "1px solid var(--accent)", padding: "6px 14px", borderRadius: "var(--radius-sm)", minHeight: 34, display: "inline-flex", alignItems: "center" }}
+          className="hover:bg-[#FFF6F1] transition-colors"
         >
           Summary
         </a>
       </header>
 
-      <main className="flex-1 max-w-[800px] mx-auto p-4">
+      <main className="flex-1 max-w-[960px] mx-auto" style={{ padding: "var(--space-xl) var(--space-lg)" }}>
         {(() => {
           const divisions = [...new Set(styles.map((s) => s.division))];
           return divisions.map((division) => {
             const divStyles = styles.filter((s) => s.division === division);
             return (
-              <section key={division} className="mb-8">
-                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif" }} className="text-[22px] font-normal text-[#2C2C2C] mb-3 pb-2 border-b border-[#E8E4E0]">
-                  {division}{" "}
-                  <span className="text-[13px] text-[#9B9590]">
+              <section key={division} style={{ marginBottom: "var(--space-3xl)" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-sm)", marginBottom: "var(--space-md)", paddingBottom: "var(--space-sm)", borderBottom: "1px solid var(--border)" }}>
+                  <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 400, color: "var(--text-primary)" }}>
+                    {division}
+                  </h2>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
                     ({divStyles.length})
                   </span>
-                </h2>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {divStyles.map((style) => (
                     <StyleCard
                       key={style.id}

@@ -78,38 +78,47 @@ export default function DetailDrawer({
 
   return (
     <>
-      {/* Backdrop with blur */}
+      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/30 z-50"
-        style={{ backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+        style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 50, backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Center popup modal */}
+      {/* Modal */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label={`Details for style ${style.id}`}
-        className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+        style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
         onClick={onClose}
       >
         <div
-          className="bg-white rounded-2xl w-full max-w-[600px] max-h-[90vh] flex flex-col shadow-xl animate-pop-in"
-          style={{ padding: "20px" }}
+          className="animate-pop-in"
+          style={{
+            background: "var(--surface)",
+            borderRadius: "var(--radius-lg)",
+            width: "100%",
+            maxWidth: 600,
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+            padding: 20,
+          }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close button */}
+          {/* Close */}
           <button
             onClick={onClose}
-            className="self-end text-[#9B9590] hover:text-[#2C2C2C] transition-colors mb-2 text-xl leading-none"
+            style={{ alignSelf: "flex-end", color: "var(--text-muted)", fontSize: 20, lineHeight: 1, background: "none", border: "none", cursor: "pointer", marginBottom: 8 }}
             aria-label="Close"
           >
             &times;
           </button>
 
-          {/* Photo - large */}
-          <div className="relative w-full aspect-[4/3] bg-[#F0EEEB] rounded-xl overflow-hidden mb-4 shrink-0">
+          {/* Photo */}
+          <div style={{ position: "relative", width: "100%", aspectRatio: "4/3", background: "#F0EEEB", borderRadius: "var(--radius-md)", overflow: "hidden", marginBottom: 16, flexShrink: 0 }}>
             {photos[photoIndex] ? (
               <Image
                 src={photos[photoIndex]}
@@ -119,19 +128,21 @@ export default function DetailDrawer({
                 sizes="(max-width: 600px) 100vw, 600px"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-[#9B9590]">
+              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>
                 {style.id}
               </div>
             )}
             {photos.length > 1 && (
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+              <div style={{ position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 6 }}>
                 {photos.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setPhotoIndex(i)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      i === photoIndex ? "bg-white shadow" : "bg-white/50"
-                    }`}
+                    style={{
+                      width: 8, height: 8, borderRadius: "50%", border: "none", cursor: "pointer", padding: 0,
+                      background: i === photoIndex ? "white" : "rgba(255,255,255,0.5)",
+                      boxShadow: i === photoIndex ? "0 1px 3px rgba(0,0,0,0.2)" : "none",
+                    }}
                     aria-label={`Photo ${i + 1}`}
                   />
                 ))}
@@ -139,24 +150,24 @@ export default function DetailDrawer({
             )}
           </div>
 
-          {/* Info row: title + specs inline */}
-          <div className="flex items-start justify-between gap-4 mb-3 shrink-0">
+          {/* Info */}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 12, flexShrink: 0 }}>
             <div>
-              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif" }} className="text-xl font-normal text-[#2C2C2C]">{style.id}</h2>
-              <div className="text-[12px] text-[#9B9590] mt-0.5">
-                {style.contents} · {style.construction} · {style.weight}
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 400, color: "var(--text-primary)" }}>{style.id}</h2>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                {style.contents} &middot; {style.construction} &middot; {style.weight}
               </div>
             </div>
             {style.fabric_suggestion && (
-              <div className="bg-[#FFF6F1] rounded-lg px-3 py-1.5 text-[11px] shrink-0">
-                <strong className="text-[#C45A2D]">Suggestion</strong>{" "}
+              <div style={{ background: "var(--accent-light)", borderRadius: "var(--radius-md)", padding: "6px 12px", fontSize: 11, flexShrink: 0 }}>
+                <strong style={{ color: "var(--accent)" }}>Suggestion</strong>{" "}
                 {style.fabric_suggestion.fabric_no}
               </div>
             )}
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-2 mb-3 shrink-0">
+          <div style={{ display: "flex", gap: 8, marginBottom: 12, flexShrink: 0 }}>
             {(["shortlist", "maybe", "pass"] as SelectionStatus[]).map((s) => {
               const config = STATUS_CONFIG[s];
               const isActive = currentStatus === s;
@@ -166,11 +177,12 @@ export default function DetailDrawer({
                   key={s}
                   onClick={() => handleSelect(s)}
                   disabled={isLoading}
-                  className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-semibold transition-all min-h-[40px] ${
+                  className={`flex-1 py-2.5 rounded text-sm font-semibold transition-all min-h-[40px] ${
                     isActive
-                      ? `${config.border} ${config.activeBg}`
-                      : "border-[#E8E4E0] bg-white text-[#2C2C2C] hover:border-[#ccc]"
+                      ? `border-2 ${config.border} ${config.activeBg}`
+                      : "border-2 border-[var(--border)] bg-[var(--surface)] text-[var(--text-primary)] hover:border-[var(--text-muted)]"
                   }`}
+                  style={{ borderRadius: "var(--radius-sm)", fontFamily: "var(--font-body)", fontSize: 14, fontWeight: 500, cursor: "pointer" }}
                 >
                   {isLoading ? "..." : config.label}
                 </button>
@@ -178,21 +190,21 @@ export default function DetailDrawer({
             })}
           </div>
 
-          {/* Memo section - scrollable */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            <h3 className="text-sm font-semibold text-[#2C2C2C] mb-1.5">Memos</h3>
+          {/* Memos */}
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+            <h3 style={{ fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 500, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.08em" }}>Memos</h3>
 
             {memos.length === 0 ? (
-              <p className="text-[12px] text-[#9B9590] mb-2">No memos yet.</p>
+              <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>No memos yet.</p>
             ) : (
-              <div className="flex flex-col gap-1.5 mb-2">
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 8 }}>
                 {memos.map((memo) => (
-                  <div key={memo.id} className="bg-[#f8f8f8] rounded-lg p-2">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xs font-semibold text-[#C45A2D]">{memo.user_name}</span>
-                      <span className="text-[10px] text-[#9B9590]">{formatTimeAgo(memo.created_at)}</span>
+                  <div key={memo.id} style={{ background: "var(--bg)", borderRadius: "var(--radius-md)", padding: 8 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)" }}>{memo.user_name}</span>
+                      <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{formatTimeAgo(memo.created_at)}</span>
                     </div>
-                    <div className="text-[12px] text-[#2C2C2C] mt-0.5">{memo.content}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-primary)", marginTop: 2 }}>{memo.content}</div>
                   </div>
                 ))}
                 {hasMore && onLoadMore && (
@@ -206,7 +218,7 @@ export default function DetailDrawer({
                       }
                     }}
                     disabled={loadingMore}
-                    className="text-[12px] text-[#C45A2D] hover:text-[#A84B24] py-1.5 transition-colors disabled:opacity-40"
+                    style={{ fontSize: 12, color: "var(--accent)", padding: "6px 0", background: "none", border: "none", cursor: "pointer" }}
                   >
                     {loadingMore ? "Loading..." : "Load earlier memos"}
                   </button>
@@ -214,19 +226,45 @@ export default function DetailDrawer({
               </div>
             )}
 
-            <form onSubmit={handleAddMemo} className="flex gap-2 items-end">
+            <form onSubmit={handleAddMemo} style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
               <textarea
                 value={memoText}
                 onChange={(e) => setMemoText(e.target.value)}
                 placeholder="Add a memo..."
                 aria-label={`Add a memo for style ${style.id}`}
                 rows={1}
-                className="flex-1 px-3 py-2 border border-[#E8E4E0] rounded-lg text-sm resize-none text-[#2C2C2C] placeholder:text-[#9B9590] focus:outline-none focus:border-[#C45A2D] transition-colors"
+                style={{
+                  flex: 1,
+                  padding: "8px 12px",
+                  border: "1px solid var(--border)",
+                  borderRadius: "var(--radius-sm)",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 14,
+                  resize: "none",
+                  color: "var(--text-primary)",
+                  background: "var(--bg)",
+                  outline: "none",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
               />
               <button
                 type="submit"
                 disabled={saving || !memoText.trim()}
-                className="px-4 py-2 bg-[#C45A2D] text-white rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-[#A84B24] transition-colors min-h-[38px] shrink-0"
+                style={{
+                  padding: "8px 16px",
+                  background: saving || !memoText.trim() ? "var(--accent)" : "var(--accent)",
+                  opacity: saving || !memoText.trim() ? 0.4 : 1,
+                  color: "white",
+                  borderRadius: "var(--radius-sm)",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  border: "none",
+                  cursor: saving || !memoText.trim() ? "default" : "pointer",
+                  minHeight: 38,
+                  flexShrink: 0,
+                }}
               >
                 {saving ? "..." : "Send"}
               </button>
