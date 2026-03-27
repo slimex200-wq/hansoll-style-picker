@@ -151,7 +151,7 @@ export default function DetailDrawer({
             border: "1px solid var(--border)",
             borderRadius: 12,
             width: "100%",
-            maxWidth: 900,
+            maxWidth: 1000,
             maxHeight: "90vh",
             boxShadow: "0 24px 80px rgba(0,0,0,0.18)",
             overflow: "hidden",
@@ -182,10 +182,10 @@ export default function DetailDrawer({
           {/* ===== DESKTOP: Side-by-side (sm+) ===== */}
           <div className="modal-desktop" style={{ flex: 1, minHeight: 0 }}>
             {/* Left: Image */}
-            <div style={{ width: "45%", flexShrink: 0, position: "relative", background: "#F0EEEB" }}>
+            <div style={{ width: "50%", flexShrink: 0, position: "relative", background: "#F0EEEB" }}>
               <div style={{ position: "relative", width: "100%", height: "100%" }}>
                 {photos[photoIndex] ? (
-                  <Image src={photos[photoIndex]} alt={`${style.id} product image`} fill className="object-cover" sizes="320px" />
+                  <Image src={photos[photoIndex]} alt={`${style.id} product image`} fill className="object-contain" sizes="500px" />
                 ) : (
                   <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)" }}>{style.id}</div>
                 )}
