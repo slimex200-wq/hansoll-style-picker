@@ -251,7 +251,7 @@ export default function DetailDrawer({
         aria-hidden="true"
         style={{
           position: "fixed", inset: 0, zIndex: 50,
-          background: "rgba(0,0,0,0.85)",
+          background: "var(--surface)",
           animation: `${closing ? "modal-overlay-out 150ms ease-in both" : "modal-overlay-in 200ms ease-out both"}`,
         }}
       />
@@ -266,34 +266,34 @@ export default function DetailDrawer({
       >
         {/* Close */}
         <button ref={firstFocusRef} onClick={handleClose} aria-label="Close"
-          style={{ position: "absolute", top: 16, right: 16, zIndex: 10, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.1)", border: "none", borderRadius: 9999, cursor: "pointer", color: "rgba(255,255,255,0.6)", transition: "all 0.15s" }}
-          onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "#fff"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
+          style={{ position: "absolute", top: 16, right: 16, zIndex: 10, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", border: "none", borderRadius: 9999, cursor: "pointer", color: "var(--text-muted)", transition: "all 0.15s" }}
+          onMouseEnter={e => { e.currentTarget.style.background = "var(--border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text-muted)"; }}
         ><X size={20} /></button>
 
         {/* Image area — fills remaining space */}
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40, minWidth: 0 }}
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 40, minWidth: 0, background: "var(--bg)" }}
           onClick={handleClose}
         >
           <div onClick={e => e.stopPropagation()} style={{ position: "relative", width: "100%", height: "100%", maxWidth: 600 }}>
             {photos[photoIndex] ? (
               <Image src={photos[photoIndex]} alt={`${style.id} product image`} fill className="object-contain" sizes="60vw" />
             ) : (
-              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", fontSize: 20 }}>{style.id}</div>
+              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 20 }}>{style.id}</div>
             )}
             {/* Arrows */}
             {photos.length > 1 && photoIndex > 0 && (
               <button onClick={() => setPhotoIndex(p => p - 1)} aria-label="Previous image"
-                style={{ position: "absolute", left: -48, top: "50%", transform: "translateY(-50%)", width: 40, height: 40, borderRadius: 9999, background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.7)", transition: "all 0.15s" }}
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "#fff"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
+                style={{ position: "absolute", left: -48, top: "50%", transform: "translateY(-50%)", width: 40, height: 40, borderRadius: 9999, background: "var(--bg)", border: "1px solid var(--border)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "var(--border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text-muted)"; }}
               ><ChevronLeft size={20} /></button>
             )}
             {photos.length > 1 && photoIndex < photos.length - 1 && (
               <button onClick={() => setPhotoIndex(p => p + 1)} aria-label="Next image"
-                style={{ position: "absolute", right: -48, top: "50%", transform: "translateY(-50%)", width: 40, height: 40, borderRadius: 9999, background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.7)", transition: "all 0.15s" }}
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "#fff"; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
+                style={{ position: "absolute", right: -48, top: "50%", transform: "translateY(-50%)", width: 40, height: 40, borderRadius: 9999, background: "var(--bg)", border: "1px solid var(--border)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", transition: "all 0.15s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "var(--border)"; e.currentTarget.style.color = "var(--text-primary)"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "var(--bg)"; e.currentTarget.style.color = "var(--text-muted)"; }}
               ><ChevronRight size={20} /></button>
             )}
             {/* Dots */}
@@ -301,7 +301,7 @@ export default function DetailDrawer({
               <div style={{ position: "absolute", bottom: -24, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 8 }}>
                 {photos.map((_, i) => (
                   <button key={i} onClick={() => setPhotoIndex(i)} aria-label={`Image ${i + 1}`}
-                    style={{ width: 8, height: 8, borderRadius: 9999, border: "none", padding: 0, cursor: "pointer", background: i === photoIndex ? "var(--accent)" : "rgba(255,255,255,0.3)", transition: "background 0.2s" }}
+                    style={{ width: 8, height: 8, borderRadius: 9999, border: "none", padding: 0, cursor: "pointer", background: i === photoIndex ? "var(--accent)" : "var(--border)", transition: "background 0.2s" }}
                   />
                 ))}
               </div>
