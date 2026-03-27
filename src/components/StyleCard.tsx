@@ -59,8 +59,8 @@ export default function StyleCard({
         )}
       </div>
       <div style={{ padding: "10px 12px" }}>
-        <div style={{ fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{style.id}</div>
-        <div style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--text-muted)", marginTop: 4, lineHeight: 1.5 }}>
+        <div style={{ fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{style.id}</div>
+        <div className="card-meta-text" style={{ fontFamily: "var(--font-body)", fontSize: 11, color: "var(--text-muted)", marginTop: 4, lineHeight: 1.5 }}>
           {style.contents} &middot; {style.construction} &middot; {style.weight}
         </div>
         {memoCount > 0 && (

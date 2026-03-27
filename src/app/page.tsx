@@ -174,17 +174,59 @@ export default function Home() {
     <>
       <style>{`
         .sidebar-desktop { display: flex; flex-direction: column; }
-        .sidebar-mobile-overlay { display: none; }
-        .mobile-tab-bar { display: none; }
         .hamburger-btn { display: none; }
-        @media (max-width: 767px) {
+        .grid-toggle-desktop { display: flex; }
+        .filter-scroll { display: flex; }
+        .card-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+        }
+        .card-meta-text {
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .header-title { font-size: 22px; }
+        .header-sub { font-size: 13px; }
+        .dark-toggle { width: 36px; height: 36px; }
+        .main-padding { padding: 24px 32px; }
+        .controls-gap { gap: 16px; margin-bottom: 24px; }
+        .div-title { font-size: 26px; }
+
+        @media (max-width: 639px) {
           .sidebar-desktop { display: none; }
           .hamburger-btn { display: flex; }
-          .mobile-tab-bar { display: flex; }
-          .sidebar-mobile-overlay.open { display: block; }
+          .grid-toggle-desktop { display: none !important; }
+          .card-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+          }
+          .card-meta-text { -webkit-line-clamp: 1; }
+          .header-title { font-size: 16px !important; }
+          .header-sub { font-size: 11px !important; }
+          .dark-toggle { width: 32px !important; height: 32px !important; }
+          .main-padding { padding: 16px !important; }
+          .controls-gap { gap: 8px; margin-bottom: 12px; }
+          .div-title { font-size: 20px !important; }
+          .filter-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }
+          .filter-scroll::-webkit-scrollbar { display: none; }
+          .filter-btn { font-size: 11px !important; padding: 6px 10px !important; white-space: nowrap; }
+          .search-input { width: 140px !important; }
         }
-        @media (min-width: 768px) and (max-width: 1024px) {
+        @media (min-width: 640px) and (max-width: 1023px) {
           .sidebar-desktop { width: 200px !important; }
+          .card-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 14px !important;
+          }
+        }
+        @media (min-width: 1024px) {
+          .card-meta-text { -webkit-line-clamp: 2; }
         }
       `}</style>
 
@@ -200,14 +242,14 @@ export default function Home() {
               </button>
               <button onClick={() => { setUserNameState(null); localStorage.removeItem("hansoll-user-name"); }}
                 style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left" as const, padding: 0 }} title="Back to onboarding">
-                <h1 style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 400, color: "var(--text-primary)", margin: 0 }}>HANSOLL SP&apos;27</h1>
+                <h1 className="header-title" style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 400, color: "var(--text-primary)", margin: 0 }}>HANSOLL SP&apos;27</h1>
               </button>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)" }}>
+              <span className="header-sub" style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-muted)" }}>
                 Talbots Outlet &middot; <span style={{ fontVariantNumeric: "tabular-nums" }}>{totalReviewed}/{totalStyles}</span> reviewed
               </span>
-              <button onClick={() => setDarkMode(!darkMode)}
+              <button className="dark-toggle" onClick={() => setDarkMode(!darkMode)}
                 style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--border)", borderRadius: 9999, background: "none", cursor: "pointer", color: "var(--text-muted)", transition: "all 0.15s" }}>
                 {darkMode ? <Sun size={16} /> : <Moon size={16} />}
               </button>
@@ -257,11 +299,11 @@ export default function Home() {
           </aside>
 
           {/* ===== MAIN CONTENT ===== */}
-          <main style={{ flex: 1, overflowY: "auto", padding: "24px 32px" }}>
+          <main className="main-padding" style={{ flex: 1, overflowY: "auto" }}>
             {/* Division header + controls */}
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 24 }}>
+            <div className="controls-gap" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                <h2 style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 400, color: "var(--text-primary)", margin: 0 }}>{activeDivision}</h2>
+                <h2 className="div-title" style={{ fontFamily: "var(--font-display)", fontSize: 26, fontWeight: 400, color: "var(--text-primary)", margin: 0 }}>{activeDivision}</h2>
                 <span style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--text-muted)" }}>({activeDivStats?.total ?? 0})</span>
               </div>
 
@@ -270,6 +312,7 @@ export default function Home() {
                 <div style={{ position: "relative" }}>
                   <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
                   <input
+                    className="search-input"
                     type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Search style..."
                     style={{ width: 180, padding: "6px 10px 6px 30px", border: "1px solid var(--border)", borderRadius: 4, fontFamily: "var(--font-body)", fontSize: 13, color: "var(--text-primary)", background: "var(--surface)", outline: "none", minHeight: 32 }}
@@ -279,9 +322,9 @@ export default function Home() {
                 </div>
 
                 {/* Filter buttons */}
-                <div style={{ display: "flex", border: "1px solid var(--border)", borderRadius: 4, overflow: "hidden" }}>
+                <div className="filter-scroll" style={{ border: "1px solid var(--border)", borderRadius: 4, overflow: "hidden" }}>
                   {FILTERS.map(f => (
-                    <button key={f.key} onClick={() => setFilter(f.key)}
+                    <button key={f.key} className="filter-btn" onClick={() => setFilter(f.key)}
                       style={{
                         fontFamily: "var(--font-body)", fontSize: 12, fontWeight: 500,
                         padding: "4px 10px", border: "none", cursor: "pointer",
@@ -297,7 +340,7 @@ export default function Home() {
                 </div>
 
                 {/* Grid toggle */}
-                <div style={{ display: "flex", border: "1px solid var(--border)", borderRadius: 4, overflow: "hidden" }}>
+                <div className="grid-toggle-desktop" style={{ border: "1px solid var(--border)", borderRadius: 4, overflow: "hidden" }}>
                   <button onClick={() => setGridCols(3)}
                     style={{ padding: "4px 8px", border: "none", cursor: "pointer", minHeight: 32, display: "flex", alignItems: "center", background: gridCols === 3 ? "var(--text-primary)" : "transparent", color: gridCols === 3 ? "var(--surface)" : "var(--text-muted)", transition: "all 0.15s" }}>
                     <Grid3X3 size={14} />
@@ -322,7 +365,7 @@ export default function Home() {
                 )}
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: `repeat(${gridCols}, 1fr)`, gap: 16 }}>
+              <div className="card-grid" style={{ gridTemplateColumns: `repeat(${gridCols}, 1fr)` }}>
                 {filteredStyles.map(style => (
                   <StyleCard
                     key={style.id}
