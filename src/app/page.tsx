@@ -185,8 +185,8 @@ export default function Home() {
 
   if (!mounted) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "#fafafa" }}>
-        <p style={{ color: "#888", fontSize: 14 }}>Loading...</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "#FAF9F7" }}>
+        <p style={{ color: "#9B9590", fontSize: 14 }}>Loading...</p>
       </div>
     );
   }
@@ -202,24 +202,24 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "#fafafa" }}>
-        <p style={{ color: "#888", fontSize: 14 }}>Loading collection...</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "#FAF9F7" }}>
+        <p style={{ color: "#9B9590", fontSize: 14 }}>Loading collection...</p>
       </div>
     );
   }
 
   return (
     <>
-      <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 flex items-center justify-between sticky top-0 z-10">
+      <header className="bg-white border-b border-[#E8E4E0] px-4 py-4 flex items-center justify-between sticky top-0 z-10">
         <div>
-          <h1 className="text-lg font-semibold text-[#333]">HANSOLL SP&apos;27</h1>
-          <div className="text-[13px] text-[#888] mt-0.5">
+          <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif" }} className="text-xl font-normal text-[#2C2C2C]">HANSOLL SP&apos;27</h1>
+          <div className="text-[13px] text-[#9B9590] mt-0.5">
             Talbots Outlet &middot; {reviewedCount}/{styles.length} reviewed
           </div>
         </div>
         <a
           href="/admin"
-          className="text-[13px] text-[#E85D2A] border border-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
+          className="text-[13px] text-[#C45A2D] border border-[#C45A2D] px-3 py-1.5 rounded-md hover:bg-[#FFF6F1] transition-colors"
         >
           Summary
         </a>
@@ -232,9 +232,9 @@ export default function Home() {
             const divStyles = styles.filter((s) => s.division === division);
             return (
               <section key={division} className="mb-8">
-                <h2 className="text-[15px] font-semibold text-[#333] mb-3">
+                <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif" }} className="text-[22px] font-normal text-[#2C2C2C] mb-3 pb-2 border-b border-[#E8E4E0]">
                   {division}{" "}
-                  <span className="font-normal text-[12px] text-[#888]">
+                  <span className="text-[13px] text-[#9B9590]">
                     ({divStyles.length})
                   </span>
                 </h2>

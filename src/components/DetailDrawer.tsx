@@ -102,14 +102,14 @@ export default function DetailDrawer({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="self-end text-[#aaa] hover:text-[#333] transition-colors mb-2 text-xl leading-none"
+            className="self-end text-[#9B9590] hover:text-[#2C2C2C] transition-colors mb-2 text-xl leading-none"
             aria-label="Close"
           >
             &times;
           </button>
 
           {/* Photo - large */}
-          <div className="relative w-full aspect-[4/3] bg-[#f0f0f0] rounded-xl overflow-hidden mb-4 shrink-0">
+          <div className="relative w-full aspect-[4/3] bg-[#F0EEEB] rounded-xl overflow-hidden mb-4 shrink-0">
             {photos[photoIndex] ? (
               <Image
                 src={photos[photoIndex]}
@@ -119,7 +119,7 @@ export default function DetailDrawer({
                 sizes="(max-width: 600px) 100vw, 600px"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-[#aaa]">
+              <div className="w-full h-full flex items-center justify-center text-[#9B9590]">
                 {style.id}
               </div>
             )}
@@ -142,14 +142,14 @@ export default function DetailDrawer({
           {/* Info row: title + specs inline */}
           <div className="flex items-start justify-between gap-4 mb-3 shrink-0">
             <div>
-              <h2 className="text-lg font-semibold text-[#333]">{style.id}</h2>
-              <div className="text-[12px] text-[#888] mt-0.5">
+              <h2 style={{ fontFamily: "'Instrument Serif', Georgia, serif" }} className="text-xl font-normal text-[#2C2C2C]">{style.id}</h2>
+              <div className="text-[12px] text-[#9B9590] mt-0.5">
                 {style.contents} · {style.construction} · {style.weight}
               </div>
             </div>
             {style.fabric_suggestion && (
-              <div className="bg-[#FFF5F0] rounded-lg px-3 py-1.5 text-[11px] shrink-0">
-                <strong className="text-[#E85D2A]">Suggestion</strong>{" "}
+              <div className="bg-[#FFF6F1] rounded-lg px-3 py-1.5 text-[11px] shrink-0">
+                <strong className="text-[#C45A2D]">Suggestion</strong>{" "}
                 {style.fabric_suggestion.fabric_no}
               </div>
             )}
@@ -169,7 +169,7 @@ export default function DetailDrawer({
                   className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-semibold transition-all min-h-[40px] ${
                     isActive
                       ? `${config.border} ${config.activeBg}`
-                      : "border-[#eee] bg-white text-[#333] hover:border-[#ccc]"
+                      : "border-[#E8E4E0] bg-white text-[#2C2C2C] hover:border-[#ccc]"
                   }`}
                 >
                   {isLoading ? "..." : config.label}
@@ -180,19 +180,19 @@ export default function DetailDrawer({
 
           {/* Memo section - scrollable */}
           <div className="flex-1 min-h-0 overflow-y-auto">
-            <h3 className="text-sm font-semibold text-[#333] mb-1.5">Memos</h3>
+            <h3 className="text-sm font-semibold text-[#2C2C2C] mb-1.5">Memos</h3>
 
             {memos.length === 0 ? (
-              <p className="text-[12px] text-[#aaa] mb-2">No memos yet.</p>
+              <p className="text-[12px] text-[#9B9590] mb-2">No memos yet.</p>
             ) : (
               <div className="flex flex-col gap-1.5 mb-2">
                 {memos.map((memo) => (
                   <div key={memo.id} className="bg-[#f8f8f8] rounded-lg p-2">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-xs font-semibold text-[#E85D2A]">{memo.user_name}</span>
-                      <span className="text-[10px] text-[#aaa]">{formatTimeAgo(memo.created_at)}</span>
+                      <span className="text-xs font-semibold text-[#C45A2D]">{memo.user_name}</span>
+                      <span className="text-[10px] text-[#9B9590]">{formatTimeAgo(memo.created_at)}</span>
                     </div>
-                    <div className="text-[12px] text-[#333] mt-0.5">{memo.content}</div>
+                    <div className="text-[12px] text-[#2C2C2C] mt-0.5">{memo.content}</div>
                   </div>
                 ))}
                 {hasMore && onLoadMore && (
@@ -206,7 +206,7 @@ export default function DetailDrawer({
                       }
                     }}
                     disabled={loadingMore}
-                    className="text-[12px] text-[#E85D2A] hover:text-[#d14e1f] py-1.5 transition-colors disabled:opacity-40"
+                    className="text-[12px] text-[#C45A2D] hover:text-[#A84B24] py-1.5 transition-colors disabled:opacity-40"
                   >
                     {loadingMore ? "Loading..." : "Load earlier memos"}
                   </button>
@@ -221,12 +221,12 @@ export default function DetailDrawer({
                 placeholder="Add a memo..."
                 aria-label={`Add a memo for style ${style.id}`}
                 rows={1}
-                className="flex-1 px-3 py-2 border border-[#ddd] rounded-lg text-sm resize-none text-[#333] placeholder:text-[#aaa] focus:outline-none focus:border-[#E85D2A] transition-colors"
+                className="flex-1 px-3 py-2 border border-[#E8E4E0] rounded-lg text-sm resize-none text-[#2C2C2C] placeholder:text-[#9B9590] focus:outline-none focus:border-[#C45A2D] transition-colors"
               />
               <button
                 type="submit"
                 disabled={saving || !memoText.trim()}
-                className="px-4 py-2 bg-[#E85D2A] text-white rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-[#d14e1f] transition-colors min-h-[38px] shrink-0"
+                className="px-4 py-2 bg-[#C45A2D] text-white rounded-lg text-sm font-medium disabled:opacity-40 hover:bg-[#A84B24] transition-colors min-h-[38px] shrink-0"
               >
                 {saving ? "..." : "Send"}
               </button>

@@ -42,10 +42,10 @@ export const STATUS_CONFIG: Record<
 > = {
   shortlist: {
     label: "Shortlist",
-    bg: "bg-[#E85D2A]",
+    bg: "bg-[#C45A2D]",
     text: "text-white",
-    border: "border-[#E85D2A]",
-    activeBg: "bg-[#FFF5F0] text-[#E85D2A]",
+    border: "border-[#C45A2D]",
+    activeBg: "bg-[#FFF6F1] text-[#C45A2D]",
   },
   maybe: {
     label: "Maybe",
