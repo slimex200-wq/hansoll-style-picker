@@ -141,6 +141,32 @@ export default function NamePrompt({ onSubmit }: NamePromptProps) {
           from { opacity: 1; transform: translateY(0) scale(1); }
           to { opacity: 0; transform: translateY(-20px) scale(0.95); }
         }
+        .onboarding-card {
+          padding: 48px 40px;
+          max-width: 380px;
+          border-radius: 16px;
+        }
+        .onboarding-title { font-size: 32px; }
+        .onboarding-season { font-size: 18px; }
+        .onboarding-sub { font-size: 14px; margin-bottom: 32px; }
+        .onboarding-stats { gap: 24px; margin-bottom: 24px; padding-bottom: 20px; }
+        .onboarding-stat-num { font-size: 20px; }
+        .onboarding-input { padding: 14px 16px; font-size: 15px; }
+        .onboarding-btn { padding: 14px; font-size: 15px; }
+        @media (max-width: 480px) {
+          .onboarding-card {
+            padding: 28px 24px !important;
+            max-width: 300px !important;
+            border-radius: 14px !important;
+          }
+          .onboarding-title { font-size: 26px !important; }
+          .onboarding-season { font-size: 15px !important; }
+          .onboarding-sub { font-size: 12px !important; margin-bottom: 20px !important; }
+          .onboarding-stats { gap: 16px !important; margin-bottom: 16px !important; padding-bottom: 14px !important; }
+          .onboarding-stat-num { font-size: 16px !important; }
+          .onboarding-input { padding: 11px 14px !important; font-size: 14px !important; }
+          .onboarding-btn { padding: 11px !important; font-size: 14px !important; }
+        }
       `}</style>
 
       {/* Conveyor belt background */}
@@ -185,14 +211,12 @@ export default function NamePrompt({ onSubmit }: NamePromptProps) {
           <form
             ref={formRef}
             onSubmit={handleSubmit}
+            className="onboarding-card"
             style={{
               background: "rgba(255,255,255,0.95)",
               backdropFilter: "blur(20px)",
               WebkitBackdropFilter: "blur(20px)",
-              borderRadius: 16,
-              padding: "48px 40px",
               width: "100%",
-              maxWidth: 380,
               textAlign: "center",
               boxShadow: "0 4px 6px rgba(0,0,0,0.05), 0 20px 60px rgba(0,0,0,0.15)",
               animation: "card-enter 0.8s cubic-bezier(0.16,1,0.3,1) both 0.3s",
@@ -211,9 +235,9 @@ export default function NamePrompt({ onSubmit }: NamePromptProps) {
               Hansoll Textile
             </div>
             <h2
+              className="onboarding-title"
               style={{
                 fontFamily: "'Instrument Serif', Georgia, serif",
-                fontSize: 32,
                 fontWeight: 400,
                 color: "#2C2C2C",
                 marginBottom: 4,
@@ -223,28 +247,26 @@ export default function NamePrompt({ onSubmit }: NamePromptProps) {
               Talbots Outlet
             </h2>
             <div
+              className="onboarding-season"
               style={{
                 fontFamily: "'Instrument Serif', Georgia, serif",
                 fontStyle: "italic",
-                fontSize: 18,
                 color: "#C45A2D",
                 marginBottom: 8,
               }}
             >
               SP&apos;27 Collection
             </div>
-            <p style={{ fontSize: 14, color: "#9B9590", marginBottom: 32, lineHeight: 1.5 }}>
+            <p className="onboarding-sub" style={{ color: "#9B9590", lineHeight: 1.5 }}>
               Selected styles for buyer review
             </p>
 
             {/* Stats */}
             <div
+              className="onboarding-stats"
               style={{
                 display: "flex",
                 justifyContent: "center",
-                gap: 24,
-                marginBottom: 24,
-                paddingBottom: 20,
                 borderBottom: "1px solid #E8E4E0",
               }}
             >
@@ -254,7 +276,7 @@ export default function NamePrompt({ onSubmit }: NamePromptProps) {
                 { n: "Mar", l: "2026" },
               ].map((s) => (
                 <div key={s.l} style={{ textAlign: "center" as const }}>
-                  <div style={{ fontSize: 20, fontWeight: 600, color: "#2C2C2C" }}>{s.n}</div>
+                  <div className="onboarding-stat-num" style={{ fontWeight: 600, color: "#2C2C2C" }}>{s.n}</div>
                   <div
                     style={{
                       fontSize: 11,
@@ -299,12 +321,11 @@ export default function NamePrompt({ onSubmit }: NamePromptProps) {
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Sarah Kim"
               autoFocus
+              className="onboarding-input"
               style={{
                 width: "100%",
-                padding: "14px 16px",
                 border: "1px solid #E8E4E0",
                 borderRadius: 8,
-                fontSize: 15,
                 color: "#2C2C2C",
                 background: "#FAF9F7",
                 outline: "none",
@@ -316,14 +337,13 @@ export default function NamePrompt({ onSubmit }: NamePromptProps) {
             <button
               type="submit"
               disabled={!name.trim()}
+              className="onboarding-btn"
               style={{
                 width: "100%",
-                padding: 14,
                 border: "none",
                 borderRadius: 8,
                 background: name.trim() ? "#C45A2D" : "#C45A2D66",
                 color: "white",
-                fontSize: 15,
                 fontWeight: 500,
                 cursor: name.trim() ? "pointer" : "default",
                 transition: "background 0.2s",
