@@ -7,8 +7,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "HANSOLL SP'27 | Talbots Outlet",
     description: "Knitwell Group × Hansoll Textile — SP'27 Collection style selection & review platform",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+    url: "https://hansoll-style-picker.vercel.app",
+    images: [{ url: "https://hansoll-style-picker.vercel.app/og-image.png", width: 1200, height: 630 }],
     type: "website",
+    siteName: "HANSOLL Style Picker",
   },
   twitter: {
     card: "summary_large_image",
