@@ -286,7 +286,7 @@ export default function DetailDrawer({
 
         {/* Image area */}
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 32, minWidth: 0, background: "var(--bg)", borderRadius: "12px 0 0 12px" }}>
-          <div onClick={e => e.stopPropagation()} style={{ position: "relative", width: "100%", height: "100%", maxWidth: 600 }}>
+          <div onClick={e => e.stopPropagation()} style={{ position: "relative", width: "100%", height: "100%" }}>
             {photos[photoIndex] ? (
               <Image src={photos[photoIndex]} alt={`${style.id} product image`} fill className="object-contain" sizes="60vw" />
             ) : (
