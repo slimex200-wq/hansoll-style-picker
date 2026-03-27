@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "HANSOLL SP'27 | Talbots Outlet",
     description: "Knitwell Group × Hansoll Textile — SP'27 Collection style selection & review platform",
     url: "https://hansoll-style-picker.vercel.app",
-    images: [{ url: "https://hansoll-style-picker.vercel.app/og-image.png", width: 1200, height: 630 }],
+    images: [{ url: "https://hansoll-style-picker.vercel.app/og-image-v2.png", width: 1200, height: 630 }],
     type: "website",
     siteName: "HANSOLL Style Picker",
   },
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "HANSOLL SP'27 | Talbots Outlet",
     description: "Knitwell Group × Hansoll Textile — SP'27 Collection",
-    images: ["/og-image.png"],
+    images: ["/og-image-v2.png"],
   },
 };
 
