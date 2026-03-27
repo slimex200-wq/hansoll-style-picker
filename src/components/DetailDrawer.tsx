@@ -145,7 +145,7 @@ export default function DetailDrawer({
             border: "1px solid var(--border)",
             borderRadius: 12,
             width: "100%",
-            maxWidth: 720,
+            maxWidth: 900,
             maxHeight: "90vh",
             boxShadow: "0 24px 80px rgba(0,0,0,0.18)",
             overflow: "hidden",
