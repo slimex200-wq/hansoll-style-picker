@@ -118,6 +118,12 @@ export default function DetailDrawer({
         .memo-scroll::-webkit-scrollbar { width: 3px }
         .memo-scroll::-webkit-scrollbar-track { background: #E8E4E0; border-radius: 9999px }
         .memo-scroll::-webkit-scrollbar-thumb { background: #9B9590; border-radius: 9999px }
+        .modal-desktop { display: none }
+        .modal-mobile { display: flex; flex-direction: column }
+        @media (min-width: 640px) {
+          .modal-desktop { display: flex }
+          .modal-mobile { display: none }
+        }
       `}</style>
 
       {/* Overlay */}
@@ -174,7 +180,7 @@ export default function DetailDrawer({
           </button>
 
           {/* ===== DESKTOP: Side-by-side (sm+) ===== */}
-          <div className="hidden sm:flex" style={{ flex: 1, minHeight: 0 }}>
+          <div className="modal-desktop" style={{ flex: 1, minHeight: 0 }}>
             {/* Left: Image */}
             <div style={{ width: "45%", flexShrink: 0, position: "relative", background: "#F0EEEB" }}>
               <div style={{ position: "relative", width: "100%", height: "100%" }}>
@@ -324,7 +330,7 @@ export default function DetailDrawer({
           </div>
 
           {/* ===== MOBILE: Stacked (< sm) ===== */}
-          <div className="sm:hidden" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+          <div className="modal-mobile" style={{ flex: 1, overflowY: "auto" }}>
             {/* Drag handle */}
             <div style={{ display: "flex", justifyContent: "center", padding: "4px 0 8px" }}>
               <div style={{ width: 36, height: 4, background: "var(--border)", borderRadius: 9999 }} />
