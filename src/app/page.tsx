@@ -211,12 +211,16 @@ export default function Home() {
   return (
     <>
       <header style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)", borderRadius: "var(--radius-md)" }} className="px-4 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div>
+        <button
+          onClick={() => { setUserNameState(null); localStorage.removeItem("hansoll-user-name"); }}
+          style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left" as const, padding: 0 }}
+          title="Back to onboarding"
+        >
           <h1 style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 400, color: "var(--text-primary)" }}>HANSOLL SP&apos;27</h1>
           <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>
             Talbots Outlet &middot; {reviewedCount}/{styles.length} reviewed
           </div>
-        </div>
+        </button>
         <a
           href="/admin"
           style={{ fontSize: 13, color: "var(--accent)", border: "1px solid var(--accent)", padding: "6px 14px", borderRadius: "var(--radius-sm)", minHeight: 34, display: "inline-flex", alignItems: "center" }}
