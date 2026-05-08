@@ -115,7 +115,7 @@ export default function AdminPage() {
               SP&apos;27 Talbots Outlet &middot; {uniqueUsers} reviewer{uniqueUsers !== 1 ? "s" : ""}
             </div>
           </div>
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className="flex w-full flex-wrap justify-start gap-2 sm:w-auto sm:justify-end">
             <Link
               href="/admin/upload"
               className="whitespace-nowrap text-[13px] text-white bg-[#E85D2A] px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
