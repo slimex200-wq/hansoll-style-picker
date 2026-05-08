@@ -95,6 +95,7 @@ describe("DetailDrawer", () => {
     expect(screen.getAllByText("FL25122688")[0]).toBeInTheDocument();
     expect(screen.getAllByText("Yourui / China")[0]).toBeInTheDocument();
     expect(screen.getAllByText(/Wide Rib/)[0]).toBeInTheDocument();
+    expect(screen.getAllByText("Price: $2.28/YD / $3.60/LB")[0]).toBeInTheDocument();
     expect(screen.getAllByText(/BCI CO\/RCP32'S/)[0]).toBeInTheDocument();
   });
 

@@ -29,6 +29,13 @@ const STATUS_STYLES: Record<SelectionStatus, { bg: string; border: string; color
   maybe: { bg: "#FFF8E1", border: "#C4862D", color: "#F57F17" },
   pass: { bg: "#fdf0ee", border: "#C43D2D", color: "#C43D2D" },
 };
+const FABRIC_PRICE_MARKUP = 0.2;
+
+function formatDisplayPrice(price: string, unit: string): string | null {
+  const parsed = Number.parseFloat(price.replace(/[$,]/g, ""));
+  if (!Number.isFinite(parsed)) return null;
+  return `$${(parsed + FABRIC_PRICE_MARKUP).toFixed(2)}/${unit}`;
+}
 
 export default function DetailDrawer({
   style, currentStatus, memos, hasMore = false,
@@ -121,8 +128,8 @@ export default function DetailDrawer({
                 detail.weightGm2 && `${detail.weightGm2} g/m2`
               );
               const priceLine = joinParts(
-                detail.priceYd && `$${detail.priceYd}/YD`,
-                detail.priceLb && `$${detail.priceLb}/LB`
+                detail.priceYd && formatDisplayPrice(detail.priceYd, "YD"),
+                detail.priceLb && formatDisplayPrice(detail.priceLb, "LB")
               );
               const noteLine = joinParts(
                 detail.yarnDetail && `Yarn: ${detail.yarnDetail}`,
@@ -143,7 +150,7 @@ export default function DetailDrawer({
                   </div>
                   {supplierLine && <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 3 }}>{supplierLine}</div>}
                   {specLine && <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.45 }}>{specLine}</div>}
-                  {priceLine && <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.45 }}>{priceLine}</div>}
+                  {priceLine && <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.45 }}>Price: {priceLine}</div>}
                   {detail.finish && <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.45 }}>Finish: {detail.finish}</div>}
                   {noteLine && <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.45, marginTop: 3 }}>{noteLine}</div>}
                 </div>
