@@ -66,8 +66,8 @@ export default function AdminPage() {
     return (
       <>
         <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 sticky top-0 z-10">
-          <div className="max-w-[800px] mx-auto flex items-center justify-between">
-            <div>
+          <div className="max-w-[800px] mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
               <h1 className="text-lg font-semibold text-[#333]">
                 Selection Summary
               </h1>
@@ -77,7 +77,7 @@ export default function AdminPage() {
             </div>
             <Link
               href="/admin/upload"
-              className="text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
+              className="shrink-0 whitespace-nowrap text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
             >
               Upload Data
             </Link>
@@ -106,8 +106,8 @@ export default function AdminPage() {
   return (
     <>
       <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 sticky top-0 z-10">
-        <div className="max-w-[800px] mx-auto flex items-center justify-between">
-          <div>
+        <div className="max-w-[800px] mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
             <h1 className="text-lg font-semibold text-[#333]">
               Selection Summary
             </h1>
@@ -115,16 +115,16 @@ export default function AdminPage() {
               SP&apos;27 Talbots Outlet &middot; {uniqueUsers} reviewer{uniqueUsers !== 1 ? "s" : ""}
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-end gap-2">
             <Link
               href="/admin/upload"
-              className="text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
+              className="whitespace-nowrap text-[13px] text-white bg-[#E85D2A] px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
             >
               Upload Data
             </Link>
             <Link
               href="/"
-              className="text-[13px] text-[#E85D2A] border border-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
+              className="whitespace-nowrap text-[13px] text-[#E85D2A] border border-[#E85D2A] px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
             >
               Back
             </Link>
@@ -163,8 +163,12 @@ export default function AdminPage() {
                   <h3 className="text-[15px] font-semibold text-[#333]">
                     {style.id}
                   </h3>
-                  <div className="text-xs text-[#888]">
-                    {style.contents} &middot; {style.construction}
+                  <div className="text-xs text-[#888] leading-snug" style={{ overflowWrap: "anywhere" }}>
+                    <div>{style.contents}</div>
+                    <div>
+                      {style.construction}
+                      {style.weight ? ` · ${style.weight}` : ""}
+                    </div>
                   </div>
                   {total > 0 ? (
                     <div className="flex gap-2 mt-2">
