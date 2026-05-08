@@ -46,6 +46,9 @@ export default function DetailDrawer({
   useEffect(() => { setPhotoIndex(0); }, [style.id]);
 
   const photos = style.images.length > 0 ? style.images : [style.image_url];
+  const fabricDetails = style.fabric_details ?? [];
+  const joinParts = (...parts: Array<string | false | null | undefined>) =>
+    parts.filter(Boolean).join(" / ");
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") { handleClose(); return; }
@@ -87,7 +90,7 @@ export default function DetailDrawer({
     try { await onAddMemo(style.id, trimmed); setMemoText(""); } finally { setSaving(false); }
   };
 
-  const sidebarContent = (padding: string) => (
+  const sidebarContent = () => (
     <>
       {/* Style info */}
       <div style={{ marginBottom: 20 }}>
@@ -104,6 +107,51 @@ export default function DetailDrawer({
           </div>
         )}
       </div>
+
+      {fabricDetails.length > 0 && (
+        <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14, marginBottom: 20 }}>
+          <div style={{ fontFamily: "var(--font-body)", fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: "0.1em", marginBottom: 8 }}>MATCHED FABRIC</div>
+          <div style={{ display: "grid", gap: 10 }}>
+            {fabricDetails.map((detail, index) => {
+              const supplierLine = joinParts(detail.supplier, detail.fabricCountry);
+              const specLine = joinParts(
+                detail.construction,
+                detail.content,
+                detail.widthInch && `W ${detail.widthInch}"`,
+                detail.weightGm2 && `${detail.weightGm2} g/m2`
+              );
+              const priceLine = joinParts(
+                detail.priceYd && `$${detail.priceYd}/YD`,
+                detail.priceLb && `$${detail.priceLb}/LB`
+              );
+              const noteLine = joinParts(
+                detail.yarnDetail && `Yarn: ${detail.yarnDetail}`,
+                detail.comment
+              );
+
+              return (
+                <div key={`${detail.styleId}-${detail.fabricCode}-${detail.option || index}`} style={{ paddingBottom: 10, borderBottom: index < fabricDetails.length - 1 ? "1px solid var(--border)" : "none" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", fontVariantNumeric: "tabular-nums" }}>
+                      {detail.fabricCode || detail.originalText}
+                    </span>
+                    {detail.option && (
+                      <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)", background: "var(--accent-light)", borderRadius: 4, padding: "2px 5px", textTransform: "uppercase" as const }}>
+                        {detail.option}
+                      </span>
+                    )}
+                  </div>
+                  {supplierLine && <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 3 }}>{supplierLine}</div>}
+                  {specLine && <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.45 }}>{specLine}</div>}
+                  {priceLine && <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.45 }}>{priceLine}</div>}
+                  {detail.finish && <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.45 }}>Finish: {detail.finish}</div>}
+                  {noteLine && <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.45, marginTop: 3 }}>{noteLine}</div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Selection buttons */}
       <div role="radiogroup" aria-label="Style selection" style={{ marginBottom: 20 }}>
@@ -331,7 +379,7 @@ export default function DetailDrawer({
           }}
         >
           <div style={{ flex: 1, padding: "28px 24px", overflowY: "auto" }}>
-            {sidebarContent("24px")}
+            {sidebarContent()}
             {navBar}
           </div>
         </div>
@@ -367,7 +415,7 @@ export default function DetailDrawer({
 
         {/* Content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
-          {sidebarContent("20px")}
+          {sidebarContent()}
           {navBar}
           <div style={{ height: 16 }} />
         </div>

@@ -20,24 +20,6 @@ const FIELD_RE = {
   designed_by: /\|DESIGNED BY\|([^|\n]+)\|/,
 };
 
-// Fabric suggestion line: FL25102427POINTELLE 95/5 COTTON/SPANDEX 220 G/M²
-// Pattern: fabricNo + optional construction + contents + weight
-const FABRIC_SUGGESTION_RE =
-  /^(FL\d{6,})\s*([A-Z][A-Z /&*]+?)?\s+([\d/]+\s+[\w/]+(?:\s*[\w/]+)*)\s+([\d.]+\s*G\/M.?)$/m;
-
-// Alternate: sometimes construction is concatenated with fabricNo
-const FABRIC_SUGGESTION_ALT_RE =
-  /(FL\d{6,})([A-Z][A-Z ]+)\s+([\d/]+\s+[\w/]+(?:\s*[\w/]+)*)\s+([\d.]+\s*G\/M.?)$/m;
-
-// Division/section header patterns
-const DIVISION_PATTERNS = [
-  /SP'27\s+TXT/i,
-  /\bTXT\b.*TALBOTS/i,
-  /\bKnit\s*Top\b/i,
-  /\bWoven\b/i,
-  /\bSweater\b/i,
-];
-
 // Collection patterns
 const COLLECTION_PATTERNS: Array<{ pattern: RegExp; collection: string }> = [
   { pattern: /For\s+T\s+by\s+Talbots/i, collection: "T-BY-TALBOTS" },
@@ -61,29 +43,27 @@ function normalizeWeight(weight: string): string {
 function parseFabricSuggestion(
   text: string
 ): ParsedFabricSuggestion | null {
-  // Try alternate pattern first (fabricNo+construction concatenated)
-  let match = text.match(FABRIC_SUGGESTION_ALT_RE);
-  if (match) {
-    return {
-      fabric_no: match[1].trim(),
-      construction: match[2].trim(),
-      contents: match[3].trim(),
-      weight: normalizeWeight(match[4]),
-    };
-  }
+  const fabricMatch = text.match(/FL\d{6,}/);
+  if (!fabricMatch || fabricMatch.index === undefined) return null;
 
-  // Try standard pattern
-  match = text.match(FABRIC_SUGGESTION_RE);
-  if (match) {
-    return {
-      fabric_no: match[1].trim(),
-      construction: match[2]?.trim() ?? "",
-      contents: match[3].trim(),
-      weight: normalizeWeight(match[4]),
-    };
-  }
+  const afterFabric = text
+    .slice(fabricMatch.index + fabricMatch[0].length)
+    .trim();
+  const weightMatch = afterFabric.match(/([\d.]+\s*G\/M.?)\s*$/i);
+  if (!weightMatch || weightMatch.index === undefined) return null;
 
-  return null;
+  const beforeWeight = afterFabric.slice(0, weightMatch.index).trim();
+  const compositionMatch = beforeWeight.match(
+    /\b\d+(?:\/\d+)*(?:\.\d+)?\s+[A-Za-z][A-Za-z/ ]*$/
+  );
+  if (!compositionMatch || compositionMatch.index === undefined) return null;
+
+  return {
+    fabric_no: fabricMatch[0].trim(),
+    construction: beforeWeight.slice(0, compositionMatch.index).trim(),
+    contents: compositionMatch[0].trim(),
+    weight: normalizeWeight(weightMatch[1]),
+  };
 }
 
 function detectDivision(textBefore: string, defaultDivision: string): string {
@@ -127,9 +107,6 @@ export function parseMarkdownStyles(
   const errors: string[] = [];
   const warnings: string[] = [];
   const seenIds = new Set<string>();
-
-  // Split into lines for context analysis
-  const lines = markdown.split("\n");
 
   // Find all style blocks
   let match: RegExpExecArray | null;

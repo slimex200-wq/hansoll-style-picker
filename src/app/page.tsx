@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Sun, Moon, Search, Grid3X3, LayoutGrid, Menu, X as XIcon } from "lucide-react";
 import type { Style, SelectionStatus, Selection, Memo } from "@/lib/types";
-import { getUserId, getUserName, setUserName, STATUS_CONFIG } from "@/lib/store";
+import { getUserId, getUserName, setUserName } from "@/lib/store";
 import { fetchStyles, fetchSelections, fetchMemosByStyle, upsertSelection, insertMemo } from "@/lib/api";
 import StyleCard from "@/components/StyleCard";
 import DetailDrawer from "@/components/DetailDrawer";

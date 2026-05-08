@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import type { Style, Selection, Memo } from "@/lib/types";
 import { fetchStyles, fetchSelections, fetchMemos } from "@/lib/api";
 import { STATUS_CONFIG } from "@/lib/store";
@@ -11,6 +12,7 @@ export default function AdminPage() {
   const [selections, setSelections] = useState<Selection[]>([]);
   const [memos, setMemos] = useState<Memo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -23,6 +25,9 @@ export default function AdminPage() {
         setStyles(s);
         setSelections(sel);
         setMemos(m);
+        setLoadError(null);
+      } catch (e) {
+        setLoadError((e as Error).message);
       } finally {
         setLoading(false);
       }
@@ -57,6 +62,47 @@ export default function AdminPage() {
     );
   }
 
+  if (loadError) {
+    return (
+      <>
+        <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 sticky top-0 z-10">
+          <div className="max-w-[800px] mx-auto flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-[#333]">
+                Selection Summary
+              </h1>
+              <div className="text-[13px] text-[#888] mt-0.5">
+                SP&apos;27 Talbots Outlet
+              </div>
+            </div>
+            <Link
+              href="/admin/upload"
+              className="text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
+            >
+              Upload PDF
+            </Link>
+          </div>
+        </header>
+        <main className="max-w-[800px] mx-auto p-4">
+          <div className="bg-white border border-[#eee] rounded-xl p-5">
+            <h2 className="text-[15px] font-semibold text-[#333]">
+              Data connection unavailable
+            </h2>
+            <p className="text-[13px] text-[#777] mt-1.5">
+              {loadError}
+            </p>
+            <Link
+              href="/admin/upload"
+              className="inline-flex mt-4 text-[13px] text-white bg-[#E85D2A] px-3 py-2 rounded-md hover:bg-[#d14e1f] transition-colors"
+            >
+              Go to Upload PDF
+            </Link>
+          </div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 sticky top-0 z-10">
@@ -70,18 +116,18 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <a
+            <Link
               href="/admin/upload"
               className="text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
             >
               Upload PDF
-            </a>
-            <a
+            </Link>
+            <Link
               href="/"
               className="text-[13px] text-[#E85D2A] border border-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
             >
               Back
-            </a>
+            </Link>
           </div>
         </div>
       </header>

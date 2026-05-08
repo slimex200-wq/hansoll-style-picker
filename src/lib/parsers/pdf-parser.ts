@@ -39,11 +39,11 @@ export async function parsePdfBuffer(
   const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
   // Vercel serverless: worker 파일 경로를 file:// URL로 지정
-  const { createRequire } = await import("module");
-  const { pathToFileURL } = await import("url");
-  const req = createRequire(import.meta.url);
-  const workerPath = req.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs");
-  pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(workerPath).href;
+  if (!("pdfjsWorker" in globalThis)) {
+    (globalThis as Record<string, unknown>).pdfjsWorker = await import(
+      "pdfjs-dist/legacy/build/pdf.worker.mjs"
+    );
+  }
 
   const doc = (await pdfjsLib.getDocument({ data: buffer }).promise) as unknown as PdfDocument;
 
@@ -84,9 +84,7 @@ export async function parsePdfBuffer(
   return result;
 }
 
-function reconstructTables(text: string): string {
-  let output = text;
-
+export function reconstructTables(text: string): string {
   const fields = [
     "STYLE #",
     "FABRIC #",
@@ -96,16 +94,70 @@ function reconstructTables(text: string): string {
     "FINISHING",
     "DESIGNED BY",
   ];
+  const stopFields = ["COMMENTS", "COMMENT", "FABRIC SUGGESTION"];
 
-  for (const field of fields) {
-    const pattern = new RegExp(
-      `${field.replace("#", "\s*#")}\s+([^\n]+?)(?=\s+(?:${fields
-        .map((f) => f.replace("#", "\s*#"))
-        .join("|")})|$)`,
-      "g"
-    );
-    output = output.replace(pattern, `|${field}|$1|`);
+  const labelPattern = (field: string) =>
+    field.split(/\s+/).map(escapeRegExp).join("\\s+").replace("\\#", "\\s*#");
+  const styleStartRe = new RegExp(labelPattern("STYLE #"), "gi");
+  const starts = [...text.matchAll(styleStartRe)].map((match) => match.index ?? 0);
+
+  if (starts.length === 0) {
+    return text;
   }
 
-  return output;
+  const blocks: string[] = [];
+
+  for (let i = 0; i < starts.length; i++) {
+    const start = starts[i];
+    const end = starts[i + 1] ?? text.length;
+    const segment = text.slice(start, end).replace(/\s+/g, " ").trim();
+    const labels = fields
+      .map((field) => {
+        const match = new RegExp(labelPattern(field), "i").exec(segment);
+        return match
+          ? { field, start: match.index, end: match.index + match[0].length }
+          : null;
+      })
+      .filter((label): label is { field: string; start: number; end: number } => Boolean(label));
+    const stopLabels = stopFields
+      .map((field) => {
+        const match = new RegExp(labelPattern(field), "i").exec(segment);
+        return match
+          ? { field, start: match.index, end: match.index + match[0].length }
+          : null;
+      })
+      .filter((label): label is { field: string; start: number; end: number } => Boolean(label));
+    const allLabels = [...labels, ...stopLabels];
+
+    const rows = fields.map((field) => {
+      const label = labels.find((item) => item.field === field);
+      const nextLabel = label
+        ? allLabels
+            .filter((item) => item.start > label.start)
+            .sort((a, b) => a.start - b.start)[0]
+        : null;
+      const value = label
+        ? segment.slice(label.end, nextLabel?.start ?? segment.length).trim()
+        : "";
+      return `|${field}|${value}|`;
+    });
+
+    const styleId = rows[0].match(/\|STYLE #\|([^|]*)\|/)?.[1]?.trim();
+    if (styleId) {
+      const lastFieldLabel = labels.find((label) => label.field === "DESIGNED BY");
+      const trailingStart = lastFieldLabel
+        ? (allLabels
+            .filter((item) => item.start > lastFieldLabel.start)
+            .sort((a, b) => a.start - b.start)[0]?.start ?? segment.length)
+        : segment.length;
+      const trailingText = segment.slice(trailingStart).trim();
+      blocks.push([rows.join("\n"), trailingText].filter(Boolean).join("\n"));
+    }
+  }
+
+  return `${text}\n\n${blocks.join("\n\n")}`;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

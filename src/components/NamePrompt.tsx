@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
+import Image from "next/image";
 
 const SUPABASE_STORAGE =
   "https://lflpwfgndgnxoydfvbms.supabase.co/storage/v1/object/public/style-images";
@@ -41,6 +42,17 @@ function shuffle(arr: string[]): string[] {
   return a;
 }
 
+function buildTracks(): string[][] {
+  const all = shuffle(ONBOARDING_IMAGES);
+  const chunkSize = Math.ceil(all.length / 4);
+  return [
+    all.slice(0, chunkSize),
+    shuffle(all).slice(0, chunkSize),
+    shuffle(all).slice(0, chunkSize),
+    shuffle(all).slice(0, chunkSize),
+  ];
+}
+
 function ConveyorTrack({
   images,
   direction,
@@ -66,10 +78,12 @@ function ConveyorTrack({
       }}
     >
       {doubled.map((src, i) => (
-        <img
+        <Image
           key={`${src}-${i}`}
           src={src}
           alt=""
+          width={180}
+          height={220}
           loading="lazy"
           style={{
             width: 180,
@@ -92,19 +106,8 @@ interface NamePromptProps {
 export default function NamePrompt({ onSubmit }: NamePromptProps) {
   const [name, setName] = useState("");
   const [exiting, setExiting] = useState(false);
-  const [tracks, setTracks] = useState<string[][]>([]);
+  const [tracks] = useState<string[][]>(buildTracks);
   const formRef = useRef<HTMLFormElement>(null);
-
-  useEffect(() => {
-    const all = shuffle(ONBOARDING_IMAGES);
-    const chunkSize = Math.ceil(all.length / 4);
-    setTracks([
-      all.slice(0, chunkSize),
-      shuffle(all).slice(0, chunkSize),
-      shuffle(all).slice(0, chunkSize),
-      shuffle(all).slice(0, chunkSize),
-    ]);
-  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

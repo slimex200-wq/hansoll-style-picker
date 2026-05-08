@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { parsePdfBuffer } from "@/lib/parsers/pdf-parser";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(request: Request) {

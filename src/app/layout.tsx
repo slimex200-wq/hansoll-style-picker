@@ -1,7 +1,25 @@
 import type { Metadata } from "next";
+import { DM_Sans, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-dm-sans",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: "400",
+  display: "swap",
+  variable: "--font-instrument-serif",
+});
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://hansoll-style-picker.vercel.app"),
   title: "HANSOLL SP'27 | Talbots Outlet",
   description: "Knitwell Group × Hansoll Textile — SP'27 Talbots Outlet style selection & review platform",
   openGraph: {
@@ -27,15 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
+      <body className={`${dmSans.variable} ${instrumentSerif.variable}`}>
         {children}
       </body>
     </html>

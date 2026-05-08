@@ -1,3 +1,5 @@
+import type { FabricDetail } from "./fabric-details";
+
 export type SelectionStatus = "shortlist" | "maybe" | "pass";
 
 export interface Style {
@@ -17,6 +19,7 @@ export interface Style {
     contents: string;
     weight: string;
   } | null;
+  fabric_details?: FabricDetail[];
 }
 
 export interface Selection {

@@ -108,6 +108,20 @@ describe("AdminPage", () => {
     expect(screen.getByText(/Maybe 1/)).toBeInTheDocument();
   });
 
+  it("shows an upload fallback when data loading fails", async () => {
+    vi.mocked(fetchStyles).mockRejectedValue(
+      new Error("Supabase env vars missing")
+    );
+    vi.mocked(fetchSelections).mockResolvedValue([]);
+    vi.mocked(fetchMemos).mockResolvedValue([]);
+
+    render(<AdminPage />);
+
+    expect(await screen.findByText("Data connection unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Supabase env vars missing")).toBeInTheDocument();
+    expect(screen.getByText("Go to Upload PDF")).toBeInTheDocument();
+  });
+
   it("shows 'No votes yet' when no selections exist", async () => {
     vi.mocked(fetchStyles).mockResolvedValue(mockStyles);
     vi.mocked(fetchSelections).mockResolvedValue([]);

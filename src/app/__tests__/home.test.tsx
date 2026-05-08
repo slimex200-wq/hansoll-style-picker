@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "../page";
 
@@ -49,6 +49,24 @@ const mockStyles = [
   },
 ];
 
+function getByTextContent(text: string) {
+  return screen.getByText((_, element) => {
+    const hasText = (node: Element | null) =>
+      node?.textContent?.replace(/\s+/g, " ").includes(text) ?? false;
+    return hasText(element) && Array.from(element?.children ?? []).every((child) => !hasText(child));
+  });
+}
+
+async function findByTextContent(text: string) {
+  return screen.findByText((_, element) => {
+    const hasText = (node: Element | null) =>
+      node?.textContent?.replace(/\s+/g, " ").includes(text) ?? false;
+    return hasText(element) && Array.from(element?.children ?? []).every((child) => !hasText(child));
+  });
+}
+
+const getDesktopDialog = () => within(screen.getAllByRole("dialog")[0]);
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(fetchStyles).mockResolvedValue(mockStyles);
@@ -63,8 +81,8 @@ describe("Home", () => {
 
     render(<Home />);
 
-    expect(await screen.findByText("Welcome")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Enter your name")).toBeInTheDocument();
+    expect(await screen.findByText("Hansoll Textile")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("e.g. Sarah Kim")).toBeInTheDocument();
   });
 
   it("shows style grid after name is set", async () => {
@@ -74,7 +92,7 @@ describe("Home", () => {
     render(<Home />);
 
     expect(await screen.findByText("STYLE-001")).toBeInTheDocument();
-    expect(screen.getByText(/0\/1 reviewed/)).toBeInTheDocument();
+    expect(getByTextContent("0/1 reviewed")).toBeInTheDocument();
   });
 
   it("handles name submission from NamePrompt", async () => {
@@ -83,11 +101,11 @@ describe("Home", () => {
 
     render(<Home />);
 
-    const input = await screen.findByPlaceholderText("Enter your name");
+    const input = await screen.findByPlaceholderText("e.g. Sarah Kim");
     await userEvent.type(input, "Alice");
     await userEvent.click(screen.getByRole("button", { name: "View Collection" }));
 
-    expect(setUserName).toHaveBeenCalledWith("Alice");
+    await waitFor(() => expect(setUserName).toHaveBeenCalledWith("Alice"));
   });
 
   it("opens DetailDrawer when style card is clicked", async () => {
@@ -99,7 +117,7 @@ describe("Home", () => {
     const card = await screen.findByRole("button", { name: /View details for style STYLE-001/ });
     await userEvent.click(card);
 
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getAllByRole("dialog")[0]).toBeInTheDocument();
   });
 
   it("handles selection via DetailDrawer", async () => {
@@ -121,9 +139,11 @@ describe("Home", () => {
     const card = await screen.findByRole("button", { name: /View details for style STYLE-001/ });
     await userEvent.click(card);
 
-    await userEvent.click(screen.getByText("Shortlist"));
+    await userEvent.click(getDesktopDialog().getByText("Shortlist"));
 
-    expect(upsertSelection).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "shortlist");
+    await waitFor(() =>
+      expect(upsertSelection).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "shortlist")
+    );
   });
 
   it("handles memo addition via DetailDrawer", async () => {
@@ -144,11 +164,15 @@ describe("Home", () => {
     const card = await screen.findByRole("button", { name: /View details for style STYLE-001/ });
     await userEvent.click(card);
 
-    const textarea = screen.getByPlaceholderText("Add a memo...");
-    await userEvent.type(textarea, "Nice fabric");
-    await userEvent.click(screen.getByText("Send"));
+    const dialog = getDesktopDialog();
+    const textarea = dialog.getByPlaceholderText("Add a memo...");
+    fireEvent.change(textarea, { target: { value: "Nice fabric" } });
+    expect(textarea).toHaveValue("Nice fabric");
+    await userEvent.click(dialog.getByText("Send"));
 
-    expect(insertMemo).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "Nice fabric");
+    await waitFor(() =>
+      expect(insertMemo).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "Nice fabric")
+    );
   });
 
   it("shows Summary link", async () => {
@@ -178,6 +202,6 @@ describe("Home", () => {
 
     render(<Home />);
 
-    expect(await screen.findByText(/1\/1 reviewed/)).toBeInTheDocument();
+    expect(await findByTextContent("1/1 reviewed")).toBeInTheDocument();
   });
 });

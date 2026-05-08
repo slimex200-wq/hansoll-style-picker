@@ -41,6 +41,21 @@ describe("fetchStyles", () => {
     expect(mockFrom).toHaveBeenCalledWith("styles");
   });
 
+  it("attaches mapped fabric details to matching styles", async () => {
+    mockFrom.mockReturnValue(mockChain({ data: [{ id: "HDW227020" }], error: null }));
+
+    const result = await fetchStyles();
+
+    expect(result[0].fabric_details).toEqual([
+      expect.objectContaining({
+        fabricCode: "FL25122688",
+        supplier: "Yourui",
+        construction: "Wide Rib",
+        content: "56/38/6 Cotton/Polyester/Spandex",
+      }),
+    ]);
+  });
+
   it("throws on error", async () => {
     mockFrom.mockReturnValue(
       mockChain({ data: null, error: { message: "DB error" } })

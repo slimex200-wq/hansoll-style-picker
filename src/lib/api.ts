@@ -1,4 +1,5 @@
 import { getSupabase } from "./supabase";
+import { attachFabricDetails } from "./fabric-details";
 import type { Style, Selection, SelectionStatus, Memo } from "./types";
 
 export async function fetchStyles(collection?: string): Promise<Style[]> {
@@ -7,7 +8,7 @@ export async function fetchStyles(collection?: string): Promise<Style[]> {
 
   const { data, error } = await query;
   if (error) throw new Error(`Failed to fetch styles: ${error.message}`);
-  return data as Style[];
+  return attachFabricDetails(data as Style[]);
 }
 
 export async function fetchSelections(collection?: string): Promise<Selection[]> {
