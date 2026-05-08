@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       });
 
     if (error) {
-      throw new Error(`Fabric mapping upload failed: ${error.message}`);
+      throw new Error(`Fabric mapping upload failed: ${formatSupabaseWriteError(error.message)}`);
     }
 
     return NextResponse.json({
@@ -73,6 +73,13 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+function formatSupabaseWriteError(message: string): string {
+  if (message.toLowerCase().includes("row-level security")) {
+    return "Supabase Storage write is blocked by RLS. Add SUPABASE_SERVICE_ROLE_KEY to Vercel, or allow authenticated uploads to style-images/fabric-mappings.";
+  }
+  return message;
 }
 
 async function readImportRequest(request: Request): Promise<{
