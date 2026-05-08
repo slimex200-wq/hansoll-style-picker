@@ -190,6 +190,13 @@ export default function UploadPage() {
     setMappingResult(null);
   };
 
+  const processingDescription =
+    activeTab === "pdf"
+      ? "Parsing styles from the PDF"
+      : activeTab === "zip"
+        ? "Reading parsed markdown and images from the ZIP"
+        : "Updating fabric details from the Excel mapping";
+
   return (
     <>
       <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 sticky top-0 z-10">
@@ -244,7 +251,7 @@ export default function UploadPage() {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="text-[14px] text-[#888]">Processing file...</div>
-              <div className="text-[12px] text-[#aaa] mt-1">This may take a moment for large PDFs</div>
+              <div className="text-[12px] text-[#aaa] mt-1">{processingDescription}</div>
             </div>
           </div>
         )}

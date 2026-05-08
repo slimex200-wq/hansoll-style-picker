@@ -12,9 +12,17 @@ import ToastContainer, { showToast } from "@/components/Toast";
 
 type FilterType = "all" | "shortlist" | "maybe" | "pass" | "unreviewed";
 
+function formatCollectionLabel(collection?: string): string {
+  if (!collection) return "Live";
+  const match = collection.match(/^(SP|SU|FA|FW|HO|SS)(\d{2})/i);
+  if (!match) return collection;
+  return `${match[1].toUpperCase()}'${match[2]}`;
+}
+
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [userName, setUserNameState] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [styles, setStyles] = useState<Style[]>([]);
@@ -32,6 +40,8 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const loadData = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
       const [stylesData, selectionsData, memosData] = await Promise.all([
         fetchStyles(),
@@ -56,7 +66,10 @@ export default function Home() {
       }
       setStyleMemos(memoMap);
       setMemoCounts(countMap);
-    } catch { showToast("Failed to load data", "error"); }
+    } catch (e) {
+      setLoadError((e as Error).message);
+      showToast("Failed to load data", "error");
+    }
     finally { setLoading(false); }
   }, []);
 
@@ -145,6 +158,17 @@ export default function Home() {
 
   const totalReviewed = divisionStats.reduce((sum, d) => sum + d.reviewed, 0);
   const totalStyles = styles.length;
+  const collectionStats = useMemo(
+    () =>
+      totalStyles > 0
+        ? {
+            styleCount: totalStyles,
+            divisionCount: divisions.length,
+            collectionLabel: formatCollectionLabel(styles[0]?.collection),
+          }
+        : undefined,
+    [divisions.length, styles, totalStyles]
+  );
 
   const filteredStyles = useMemo(() => {
     let result = styles.filter(s => s.division === activeDivision);
@@ -165,8 +189,39 @@ export default function Home() {
 
   // Pre-render checks
   if (!mounted) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "var(--bg)" }}><p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading...</p></div>;
-  if (!userName) return <><NamePrompt onSubmit={handleNameSubmit} /><ToastContainer /></>;
+  if (!userName) return <><NamePrompt onSubmit={handleNameSubmit} stats={collectionStats} /><ToastContainer /></>;
   if (loading) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "var(--bg)" }}><p style={{ color: "var(--text-muted)", fontSize: 14 }}>Loading collection...</p></div>;
+  if (loadError) {
+    return (
+      <>
+        <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div style={{ width: "100%", maxWidth: 420, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8, padding: 24, boxShadow: "0 12px 40px rgba(0,0,0,0.08)" }}>
+            <div style={{ fontFamily: "var(--font-body)", fontSize: 18, fontWeight: 600, color: "var(--text-primary)", marginBottom: 6 }}>
+              Collection unavailable
+            </div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 18 }}>
+              {loadError}
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <button
+                onClick={loadData}
+                style={{ minHeight: 40, padding: "0 14px", background: "var(--accent)", color: "white", border: "none", borderRadius: 4, fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                Retry
+              </button>
+              <a
+                href="/admin/upload"
+                style={{ minHeight: 40, padding: "0 14px", display: "inline-flex", alignItems: "center", border: "1px solid var(--border)", borderRadius: 4, color: "var(--text-primary)", textDecoration: "none", fontFamily: "var(--font-body)", fontSize: 13 }}
+              >
+                Upload Data
+              </a>
+            </div>
+          </div>
+        </div>
+        <ToastContainer />
+      </>
+    );
+  }
 
   const FILTERS: { key: FilterType; label: string }[] = [
     { key: "all", label: "All" },

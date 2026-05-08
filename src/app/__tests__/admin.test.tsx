@@ -119,7 +119,7 @@ describe("AdminPage", () => {
 
     expect(await screen.findByText("Data connection unavailable")).toBeInTheDocument();
     expect(screen.getByText("Supabase env vars missing")).toBeInTheDocument();
-    expect(screen.getByText("Go to Upload PDF")).toBeInTheDocument();
+    expect(screen.getByText("Go to Upload Data")).toBeInTheDocument();
   });
 
   it("shows 'No votes yet' when no selections exist", async () => {

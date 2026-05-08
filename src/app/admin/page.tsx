@@ -79,7 +79,7 @@ export default function AdminPage() {
               href="/admin/upload"
               className="text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
             >
-              Upload PDF
+              Upload Data
             </Link>
           </div>
         </header>
@@ -95,7 +95,7 @@ export default function AdminPage() {
               href="/admin/upload"
               className="inline-flex mt-4 text-[13px] text-white bg-[#E85D2A] px-3 py-2 rounded-md hover:bg-[#d14e1f] transition-colors"
             >
-              Go to Upload PDF
+              Go to Upload Data
             </Link>
           </div>
         </main>
@@ -120,7 +120,7 @@ export default function AdminPage() {
               href="/admin/upload"
               className="text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
             >
-              Upload PDF
+              Upload Data
             </Link>
             <Link
               href="/"

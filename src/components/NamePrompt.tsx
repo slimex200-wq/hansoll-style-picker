@@ -101,9 +101,14 @@ function ConveyorTrack({
 
 interface NamePromptProps {
   onSubmit: (name: string) => void;
+  stats?: {
+    styleCount: number;
+    divisionCount: number;
+    collectionLabel: string;
+  };
 }
 
-export default function NamePrompt({ onSubmit }: NamePromptProps) {
+export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
   const [name, setName] = useState("");
   const [exiting, setExiting] = useState(false);
   const [tracks] = useState<string[][]>(buildTracks);
@@ -274,9 +279,9 @@ export default function NamePrompt({ onSubmit }: NamePromptProps) {
               }}
             >
               {[
-                { n: "5", l: "Styles" },
-                { n: "2", l: "Divisions" },
-                { n: "Mar", l: "2026" },
+                { n: stats ? String(stats.styleCount) : "--", l: "Styles" },
+                { n: stats ? String(stats.divisionCount) : "--", l: "Divisions" },
+                { n: stats?.collectionLabel ?? "--", l: "Collection" },
               ].map((s) => (
                 <div key={s.l} style={{ textAlign: "center" as const }}>
                   <div className="onboarding-stat-num" style={{ fontWeight: 600, color: "#2C2C2C" }}>{s.n}</div>

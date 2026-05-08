@@ -12,6 +12,19 @@ describe("NamePrompt", () => {
     expect(screen.getByPlaceholderText("e.g. Sarah Kim")).toBeInTheDocument();
   });
 
+  it("renders collection stats from current data", () => {
+    render(
+      <NamePrompt
+        onSubmit={() => {}}
+        stats={{ styleCount: 48, divisionCount: 3, collectionLabel: "SP'27" }}
+      />
+    );
+
+    expect(screen.getByText("48")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("SP'27")).toBeInTheDocument();
+  });
+
   it("disables button when input is empty", () => {
     render(<NamePrompt onSubmit={() => {}} />);
 

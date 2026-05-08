@@ -97,6 +97,19 @@ describe("Home", () => {
     expect(getByTextContent("0/1 reviewed")).toBeInTheDocument();
   });
 
+  it("shows a persistent load error when the collection cannot load", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+    vi.mocked(fetchStyles).mockRejectedValue(new Error("Network unavailable"));
+
+    render(<Home />);
+
+    expect(await screen.findByText("Collection unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Network unavailable")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Upload Data" })).toHaveAttribute("href", "/admin/upload");
+  });
+
   it("loads memos in one batch instead of one request per style", async () => {
     vi.mocked(getUserId).mockReturnValue("user-123");
     vi.mocked(getUserName).mockReturnValue("Alice");
