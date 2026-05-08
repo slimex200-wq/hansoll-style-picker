@@ -17,11 +17,13 @@ interface FabricMappingImportRequest {
 
 function getServerSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) {
-    throw new Error("Server Supabase env vars missing");
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error("Supabase env vars missing");
   }
-  return createClient(url, serviceKey);
+  return createClient(url, key);
 }
 
 export async function POST(request: Request) {
