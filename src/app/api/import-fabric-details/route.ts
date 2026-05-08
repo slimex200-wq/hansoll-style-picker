@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import type { FabricDetail } from "@/lib/fabric-details";
 import { parseFabricMappingWorkbook } from "@/lib/parsers/xlsx-parser";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const FABRIC_MAPPING_PATH = "fabric-mappings/current.json";
+
+interface FabricMappingImportRequest {
+  rows: FabricDetail[];
+  sourceFile?: string;
+  sheetName?: string;
+  warnings?: string[];
+}
 
 function getServerSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,29 +31,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const formData = await request.formData();
-    const file = formData.get("file") as File | null;
-
-    if (!file) {
-      return NextResponse.json({ error: "Excel file required" }, { status: 400 });
-    }
-
-    if (!file.name.toLowerCase().endsWith(".xlsx")) {
-      return NextResponse.json(
-        { error: "Only .xlsx workbooks are supported" },
-        { status: 400 }
-      );
-    }
-
-    if (file.size > 25 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large (max 25MB)" }, { status: 413 });
-    }
-
-    const parsed = await parseFabricMappingWorkbook(await file.arrayBuffer());
+    const parsed = await readImportRequest(request);
     const updatedAt = new Date().toISOString();
     const payload = JSON.stringify(
       {
-        sourceFile: file.name,
+        sourceFile: parsed.sourceFile,
         sheetName: parsed.sheetName,
         updatedAt,
         rows: parsed.rows,
@@ -70,7 +60,7 @@ export async function POST(request: Request) {
       imported: parsed.rows.length,
       errors: [] as string[],
       warnings: parsed.warnings,
-      sourceFile: file.name,
+      sourceFile: parsed.sourceFile,
       sheetName: parsed.sheetName,
       updatedAt,
       sample: parsed.rows.slice(0, 5),
@@ -81,4 +71,45 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
+}
+
+async function readImportRequest(request: Request): Promise<{
+  rows: FabricDetail[];
+  warnings: string[];
+  sourceFile: string;
+  sheetName: string;
+}> {
+  const contentType = request.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    const body = (await request.json()) as FabricMappingImportRequest;
+    if (!Array.isArray(body.rows) || body.rows.length === 0) {
+      throw new Error("rows[] is required");
+    }
+    return {
+      rows: body.rows,
+      warnings: body.warnings ?? [],
+      sourceFile: body.sourceFile ?? "uploaded workbook",
+      sheetName: body.sheetName ?? "Style-Fabric Mapping",
+    };
+  }
+
+  const formData = await request.formData();
+  const file = formData.get("file") as File | null;
+
+  if (!file) {
+    throw new Error("Excel file required");
+  }
+
+  if (!file.name.toLowerCase().endsWith(".xlsx")) {
+    throw new Error("Only .xlsx workbooks are supported");
+  }
+
+  const parsed = await parseFabricMappingWorkbook(await file.arrayBuffer());
+  return {
+    rows: parsed.rows,
+    warnings: parsed.warnings,
+    sourceFile: file.name,
+    sheetName: parsed.sheetName,
+  };
 }

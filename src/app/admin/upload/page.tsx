@@ -7,6 +7,7 @@ import FileDropzone from "@/components/admin/FileDropzone";
 import ParsePreview from "@/components/admin/ParsePreview";
 import ToastContainer, { showToast } from "@/components/Toast";
 import type { FabricDetail } from "@/lib/fabric-details";
+import { parseFabricMappingWorkbook } from "@/lib/parsers/xlsx-parser";
 
 type ParseState = "idle" | "uploading" | "preview" | "importing" | "done" | "mappingDone";
 
@@ -101,12 +102,17 @@ export default function UploadPage() {
   const handleExcelUpload = async (file: File) => {
     setState("uploading");
     try {
-      const formData = new FormData();
-      formData.append("file", file);
+      const parsed = await parseFabricMappingWorkbook(await file.arrayBuffer());
 
       const res = await fetch("/api/import-fabric-details", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sourceFile: file.name,
+          sheetName: parsed.sheetName,
+          warnings: parsed.warnings,
+          rows: parsed.rows,
+        }),
       });
       const data = await res.json();
 
