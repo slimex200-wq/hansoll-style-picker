@@ -933,29 +933,59 @@ export const FABRIC_DETAIL_ROWS = [
   }
 ] satisfies FabricDetail[];
 
-const FABRIC_DETAILS_BY_STYLE = FABRIC_DETAIL_ROWS.reduce<Record<string, FabricDetail[]>>(
-  (acc, detail) => {
-    const key = normalizeStyleId(detail.styleId);
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(detail);
-    return acc;
-  },
-  {}
-);
-
-export function getFabricDetailsForStyle(styleId: string): FabricDetail[] {
-  return FABRIC_DETAILS_BY_STYLE[normalizeStyleId(styleId)] ?? [];
+interface FabricDetailsResponse {
+  rows?: FabricDetail[];
 }
 
-export function attachFabricDetails<T extends { id: string }>(
-  styles: T[]
+export function getFabricDetailsForStyle(styleId: string): FabricDetail[] {
+  return getFabricDetailsForStyleFromRows(styleId, FABRIC_DETAIL_ROWS);
+}
+
+export function getFabricDetailsForStyleFromRows(
+  styleId: string,
+  rows: FabricDetail[]
+): FabricDetail[] {
+  return indexFabricDetails(rows)[normalizeStyleId(styleId)] ?? [];
+}
+
+export function attachFabricDetailsFromRows<T extends { id: string }>(
+  styles: T[],
+  rows: FabricDetail[]
 ): Array<T & { fabric_details?: FabricDetail[] }> {
+  const detailsByStyle = indexFabricDetails(rows);
   return styles.map((style) => {
-    const fabricDetails = getFabricDetailsForStyle(style.id);
+    const fabricDetails = detailsByStyle[normalizeStyleId(style.id)] ?? [];
     return fabricDetails.length > 0
       ? { ...style, fabric_details: fabricDetails }
       : style;
   });
+}
+
+export async function attachFabricDetails<T extends { id: string }>(
+  styles: T[]
+): Promise<Array<T & { fabric_details?: FabricDetail[] }>> {
+  const rows = await fetchCurrentFabricDetails();
+  return attachFabricDetailsFromRows(styles, rows);
+}
+
+async function fetchCurrentFabricDetails(): Promise<FabricDetail[]> {
+  try {
+    const response = await fetch("/api/fabric-details", { cache: "no-store" });
+    if (!response.ok) return FABRIC_DETAIL_ROWS;
+    const payload = (await response.json()) as FabricDetailsResponse;
+    return Array.isArray(payload.rows) ? payload.rows : FABRIC_DETAIL_ROWS;
+  } catch {
+    return FABRIC_DETAIL_ROWS;
+  }
+}
+
+function indexFabricDetails(rows: FabricDetail[]): Record<string, FabricDetail[]> {
+  return rows.reduce<Record<string, FabricDetail[]>>((acc, detail) => {
+    const key = normalizeStyleId(detail.styleId);
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(detail);
+    return acc;
+  }, {});
 }
 
 function normalizeStyleId(styleId: string): string {

@@ -1,13 +1,14 @@
 "use client";
 
 interface UploadTabsProps {
-  activeTab: "pdf" | "zip";
-  onTabChange: (tab: "pdf" | "zip") => void;
+  activeTab: "pdf" | "zip" | "excel";
+  onTabChange: (tab: "pdf" | "zip" | "excel") => void;
 }
 
 const TABS = [
   { id: "pdf" as const, label: "PDF Upload" },
   { id: "zip" as const, label: "Parsed ZIP Upload" },
+  { id: "excel" as const, label: "Excel Mapping Upload" },
 ];
 
 export default function UploadTabs({ activeTab, onTabChange }: UploadTabsProps) {

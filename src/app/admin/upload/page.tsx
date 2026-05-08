@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import UploadTabs from "@/components/admin/UploadTabs";
 import FileDropzone from "@/components/admin/FileDropzone";
 import ParsePreview from "@/components/admin/ParsePreview";
 import ToastContainer, { showToast } from "@/components/Toast";
+import type { FabricDetail } from "@/lib/fabric-details";
 
-type ParseState = "idle" | "uploading" | "preview" | "importing" | "done";
+type ParseState = "idle" | "uploading" | "preview" | "importing" | "done" | "mappingDone";
 
 interface ParsedData {
   styles: Array<{
@@ -38,14 +40,25 @@ interface ParsedData {
   };
 }
 
+interface FabricMappingResult {
+  imported: number;
+  errors: string[];
+  warnings: string[];
+  sourceFile: string;
+  sheetName: string;
+  updatedAt: string;
+  sample: FabricDetail[];
+}
+
 export default function UploadPage() {
-  const [activeTab, setActiveTab] = useState<"pdf" | "zip">("pdf");
+  const [activeTab, setActiveTab] = useState<"pdf" | "zip" | "excel">("pdf");
   const [state, setState] = useState<ParseState>("idle");
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [importResult, setImportResult] = useState<{
     imported: number;
     errors: string[];
   } | null>(null);
+  const [mappingResult, setMappingResult] = useState<FabricMappingResult | null>(null);
 
   const handlePdfUpload = async (file: File) => {
     setState("uploading");
@@ -81,6 +94,29 @@ export default function UploadPage() {
       setState("preview");
     } catch (e) {
       showToast(`Upload failed: ${(e as Error).message}`, "error");
+      setState("idle");
+    }
+  };
+
+  const handleExcelUpload = async (file: File) => {
+    setState("uploading");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/import-fabric-details", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error);
+
+      setMappingResult(data);
+      setState("mappingDone");
+      showToast(`Updated ${data.imported} fabric mappings`, "success");
+    } catch (e) {
+      showToast(`Excel upload failed: ${(e as Error).message}`, "error");
       setState("idle");
     }
   };
@@ -145,6 +181,7 @@ export default function UploadPage() {
     setState("idle");
     setParsedData(null);
     setImportResult(null);
+    setMappingResult(null);
   };
 
   return (
@@ -154,15 +191,15 @@ export default function UploadPage() {
           <div>
             <h1 className="text-lg font-semibold text-[#333]">Upload Styles</h1>
             <div className="text-[13px] text-[#888] mt-0.5">
-              Import from PDF or parsed ZIP
+              Import from PDF, parsed ZIP, or Excel mapping
             </div>
           </div>
-          <a
+          <Link
             href="/admin"
             className="text-[13px] text-[#E85D2A] border border-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
           >
             Back
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -178,12 +215,19 @@ export default function UploadPage() {
                   description="Hansoll style suggestion PDF (up to 50MB)"
                   onFile={handlePdfUpload}
                 />
-              ) : (
+              ) : activeTab === "zip" ? (
                 <FileDropzone
                   accept=".zip"
                   label="Drop ZIP here"
                   description="opendataloader-pdf output (markdown + images folder)"
                   onFile={handleZipUpload}
+                />
+              ) : (
+                <FileDropzone
+                  accept=".xlsx"
+                  label="Drop Excel here"
+                  description='Workbook with "Style-Fabric Mapping" sheet (up to 25MB)'
+                  onFile={handleExcelUpload}
                 />
               )}
             </div>
@@ -237,12 +281,81 @@ export default function UploadPage() {
               >
                 Upload Another
               </button>
-              <a
+              <Link
                 href="/admin"
                 className="px-4 py-2.5 border border-[#ddd] text-[#666] rounded-lg text-[14px] hover:bg-[#f5f5f5] transition-colors"
               >
                 View Summary
-              </a>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {state === "mappingDone" && mappingResult && (
+          <div className="py-8">
+            <div className="bg-white border border-[#eee] rounded-xl p-5">
+              <div className="text-[18px] font-semibold text-[#333] mb-1">
+                Fabric Mapping Updated
+              </div>
+              <div className="text-[14px] text-[#777]">
+                {mappingResult.imported} rows imported from {mappingResult.sheetName}
+              </div>
+              <div className="text-[12px] text-[#aaa] mt-1">
+                {mappingResult.sourceFile} &middot; {new Date(mappingResult.updatedAt).toLocaleString()}
+              </div>
+
+              {mappingResult.warnings.length > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+                  <div className="text-[13px] font-semibold text-yellow-700 mb-1">
+                    Warnings ({mappingResult.warnings.length})
+                  </div>
+                  {mappingResult.warnings.map((warning, i) => (
+                    <div key={i} className="text-[12px] text-yellow-700">
+                      {warning}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {mappingResult.sample.length > 0 && (
+                <div className="border border-[#eee] rounded-lg overflow-hidden mt-4">
+                  <table className="w-full text-[12px]">
+                    <thead>
+                      <tr className="bg-[#fafafa] border-b border-[#eee]">
+                        <th className="p-2 text-left text-[#888] font-medium">Style</th>
+                        <th className="p-2 text-left text-[#888] font-medium">Fabric</th>
+                        <th className="p-2 text-left text-[#888] font-medium hidden sm:table-cell">Supplier</th>
+                        <th className="p-2 text-left text-[#888] font-medium hidden md:table-cell">Construction</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mappingResult.sample.map((detail) => (
+                        <tr key={`${detail.styleId}-${detail.fabricCode}-${detail.option}`} className="border-b border-[#f0f0f0]">
+                          <td className="p-2 font-medium text-[#333]">{detail.styleId}</td>
+                          <td className="p-2 text-[#666]">{detail.fabricCode || detail.originalText || "-"}</td>
+                          <td className="p-2 text-[#666] hidden sm:table-cell">{detail.supplier || "-"}</td>
+                          <td className="p-2 text-[#666] hidden md:table-cell">{detail.construction || "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-5">
+                <button
+                  onClick={handleReset}
+                  className="px-4 py-2.5 bg-[#E85D2A] text-white rounded-lg text-[14px] font-semibold hover:bg-[#d14e1f] transition-colors"
+                >
+                  Upload Another
+                </button>
+                <Link
+                  href="/"
+                  className="px-4 py-2.5 border border-[#ddd] text-[#666] rounded-lg text-[14px] hover:bg-[#f5f5f5] transition-colors"
+                >
+                  View Styles
+                </Link>
+              </div>
             </div>
           </div>
         )}
