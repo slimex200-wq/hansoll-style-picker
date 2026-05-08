@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { Sun, Moon, Search, Grid3X3, LayoutGrid, Menu, X as XIcon } from "lucide-react";
 import type { Style, SelectionStatus, Selection, Memo } from "@/lib/types";
 import { getUserId, getUserName, setUserName } from "@/lib/store";
-import { fetchStyles, fetchSelections, fetchMemosByStyle, upsertSelection, insertMemo } from "@/lib/api";
+import { fetchStyles, fetchSelections, fetchMemos, fetchMemosByStyle, upsertSelection, insertMemo } from "@/lib/api";
 import StyleCard from "@/components/StyleCard";
 import DetailDrawer from "@/components/DetailDrawer";
 import NamePrompt from "@/components/NamePrompt";
@@ -33,19 +33,27 @@ export default function Home() {
 
   const loadData = useCallback(async () => {
     try {
-      const [stylesData, selectionsData] = await Promise.all([fetchStyles(), fetchSelections()]);
+      const [stylesData, selectionsData, memosData] = await Promise.all([
+        fetchStyles(),
+        fetchSelections(),
+        fetchMemos(),
+      ]);
       setStyles(stylesData);
       const selMap = new Map<string, Selection>();
       for (const s of selectionsData) selMap.set(`${s.style_id}:${s.user_id}`, s);
       setSelections(selMap);
 
-      const memoResults = await Promise.all(stylesData.map((s) => fetchMemosByStyle(s.id, 20, 0)));
       const memoMap = new Map<string, { memos: Memo[]; hasMore: boolean; offset: number }>();
       const countMap = new Map<string, number>();
-      stylesData.forEach((s, i) => {
-        memoMap.set(s.id, { memos: memoResults[i].data, hasMore: memoResults[i].hasMore, offset: 0 });
-        countMap.set(s.id, memoResults[i].data.length + (memoResults[i].hasMore ? 1 : 0));
-      });
+      for (const memo of memosData) {
+        const existing = memoMap.get(memo.style_id);
+        memoMap.set(memo.style_id, {
+          memos: existing ? [...existing.memos, memo] : [memo],
+          hasMore: false,
+          offset: 0,
+        });
+        countMap.set(memo.style_id, (countMap.get(memo.style_id) ?? 0) + 1);
+      }
       setStyleMemos(memoMap);
       setMemoCounts(countMap);
     } catch { showToast("Failed to load data", "error"); }

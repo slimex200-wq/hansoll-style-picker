@@ -7,6 +7,7 @@ import Home from "../page";
 vi.mock("@/lib/api", () => ({
   fetchStyles: vi.fn(),
   fetchSelections: vi.fn(),
+  fetchMemos: vi.fn(),
   fetchMemosByStyle: vi.fn(),
   upsertSelection: vi.fn(),
   insertMemo: vi.fn(),
@@ -29,7 +30,7 @@ vi.mock("@/components/Toast", () => ({
   default: () => null,
 }));
 
-import { fetchStyles, fetchSelections, fetchMemosByStyle, upsertSelection, insertMemo } from "@/lib/api";
+import { fetchStyles, fetchSelections, fetchMemos, fetchMemosByStyle, upsertSelection, insertMemo } from "@/lib/api";
 import { getUserId, getUserName, setUserName } from "@/lib/store";
 
 const mockStyles = [
@@ -71,6 +72,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(fetchStyles).mockResolvedValue(mockStyles);
   vi.mocked(fetchSelections).mockResolvedValue([]);
+  vi.mocked(fetchMemos).mockResolvedValue([]);
   vi.mocked(fetchMemosByStyle).mockResolvedValue({ data: [], hasMore: false });
 });
 
@@ -93,6 +95,28 @@ describe("Home", () => {
 
     expect(await screen.findByText("STYLE-001")).toBeInTheDocument();
     expect(getByTextContent("0/1 reviewed")).toBeInTheDocument();
+  });
+
+  it("loads memos in one batch instead of one request per style", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+    vi.mocked(fetchMemos).mockResolvedValue([
+      {
+        id: "memo-1",
+        style_id: "STYLE-001",
+        collection: "SP27-TALBOTS-OUTLET",
+        user_id: "user-123",
+        user_name: "Alice",
+        content: "Already noted",
+        created_at: "2026-03-25T10:00:00Z",
+      },
+    ]);
+
+    render(<Home />);
+
+    expect(await screen.findByText("1 memo")).toBeInTheDocument();
+    expect(fetchMemos).toHaveBeenCalledOnce();
+    expect(fetchMemosByStyle).not.toHaveBeenCalled();
   });
 
   it("handles name submission from NamePrompt", async () => {

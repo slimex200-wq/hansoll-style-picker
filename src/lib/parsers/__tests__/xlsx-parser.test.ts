@@ -62,9 +62,51 @@ describe("parseFabricMappingWorkbook", () => {
       }),
     ]);
   });
+
+  it("recovers shared string indexes from string columns", async () => {
+    const workbook = await buildWorkbook(
+      [
+        HEADERS,
+        [
+          "KNIT TOP",
+          "PW271TALMJK022",
+          "HDW127271",
+          "",
+          "FL25102386",
+          "",
+          "2*2 Rib (hudson rib)",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "회사 시스템 등록 (hudson rib)",
+          "",
+          "FL25102386 (hudson rib)",
+        ],
+      ],
+      new Set(["E2", "G2", "O2", "Q2"])
+    );
+
+    const result = await parseFabricMappingWorkbook(workbook);
+
+    expect(result.rows[0]).toMatchObject({
+      styleId: "HDW127271",
+      option: "",
+      fabricCode: "FL25102386",
+      construction: "2*2 Rib (hudson rib)",
+      comment: "회사 시스템 등록 (hudson rib)",
+      originalText: "FL25102386 (hudson rib)",
+    });
+  });
 });
 
-async function buildWorkbook(rows: string[][]): Promise<ArrayBuffer> {
+async function buildWorkbook(
+  rows: string[][],
+  rawSharedStringRefs = new Set<string>()
+): Promise<ArrayBuffer> {
   const strings = [...new Set(rows.flat())];
   const stringIndex = new Map(strings.map((value, index) => [value, index]));
   const zip = new JSZip();
@@ -81,17 +123,27 @@ async function buildWorkbook(rows: string[][]): Promise<ArrayBuffer> {
     "xl/sharedStrings.xml",
     `<sst>${strings.map((value) => `<si><t>${escapeXml(value)}</t></si>`).join("")}</sst>`
   );
-  zip.file("xl/worksheets/sheet1.xml", `<worksheet><sheetData>${rowsToXml(rows, stringIndex)}</sheetData></worksheet>`);
+  zip.file(
+    "xl/worksheets/sheet1.xml",
+    `<worksheet><sheetData>${rowsToXml(rows, stringIndex, rawSharedStringRefs)}</sheetData></worksheet>`
+  );
 
   return zip.generateAsync({ type: "arraybuffer" });
 }
 
-function rowsToXml(rows: string[][], stringIndex: Map<string, number>): string {
+function rowsToXml(
+  rows: string[][],
+  stringIndex: Map<string, number>,
+  rawSharedStringRefs: Set<string>
+): string {
   return rows
     .map((row, rowIndex) => {
       const cells = row
         .map((value, colIndex) => {
           const ref = `${columnName(colIndex)}${rowIndex + 1}`;
+          if (rawSharedStringRefs.has(ref)) {
+            return `<c r="${ref}"><v>${stringIndex.get(value) ?? 0}</v></c>`;
+          }
           return `<c r="${ref}" t="s"><v>${stringIndex.get(value) ?? 0}</v></c>`;
         })
         .join("");

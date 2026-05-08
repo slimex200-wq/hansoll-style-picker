@@ -30,6 +30,12 @@ const FIELD_MAP: Array<{ header: string; key: keyof FabricDetail }> = [
 ];
 
 const REQUIRED_HEADERS = ["Style #", "FL # / Code"];
+const NUMERIC_FIELDS = new Set<keyof FabricDetail>([
+  "widthInch",
+  "weightGm2",
+  "priceYd",
+  "priceLb",
+]);
 
 interface WorkbookSheet {
   name: string;
@@ -87,7 +93,7 @@ export async function parseFabricMappingWorkbook(
   const headerRowIndex = table.indexOf(headerRow);
   const rows = table
     .slice(headerRowIndex + 1)
-    .map((row) => rowToFabricDetail(row, headerIndex))
+    .map((row) => rowToFabricDetail(row, sharedStrings))
     .filter((detail) => detail.styleId || detail.fabricCode);
 
   if (rows.length === 0) {
@@ -103,12 +109,15 @@ export async function parseFabricMappingWorkbook(
 
 function rowToFabricDetail(
   row: string[],
-  headerIndex: Map<string, number>
+  sharedStrings: string[]
 ): FabricDetail {
   const detail = emptyFabricDetail();
-  for (const field of FIELD_MAP) {
-    const index = headerIndex.get(normalizeHeader(field.header));
-    detail[field.key] = index === undefined ? "" : cleanCell(row[index] ?? "");
+  for (const [index, field] of FIELD_MAP.entries()) {
+    const rawValue = row[index] ?? "";
+    const value = NUMERIC_FIELDS.has(field.key)
+      ? rawValue
+      : decodeSharedStringIndex(rawValue, sharedStrings);
+    detail[field.key] = cleanCell(value);
   }
   detail.styleId = detail.styleId.toUpperCase();
   return detail;
@@ -246,6 +255,12 @@ function cleanCell(value: string): string {
     .filter(Boolean)
     .join(" ")
     .trim();
+}
+
+function decodeSharedStringIndex(value: string, sharedStrings: string[]): string {
+  if (!/^\d+$/.test(value)) return value;
+  const index = Number(value);
+  return sharedStrings[index] ?? value;
 }
 
 function normalize(value: string): string {
