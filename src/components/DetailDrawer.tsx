@@ -127,10 +127,8 @@ export default function DetailDrawer({
                 detail.widthInch && `W ${detail.widthInch}"`,
                 detail.weightGm2 && `${detail.weightGm2} g/m2`
               );
-              const priceLine = joinParts(
-                detail.priceYd && formatDisplayPrice(detail.priceYd, "YD"),
-                detail.priceLb && formatDisplayPrice(detail.priceLb, "LB")
-              );
+              const priceLine =
+                detail.priceYd && formatDisplayPrice(detail.priceYd, "YD");
               const noteLine = joinParts(
                 detail.yarnDetail && `Yarn: ${detail.yarnDetail}`,
                 detail.comment
