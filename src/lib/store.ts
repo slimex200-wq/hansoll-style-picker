@@ -24,6 +24,10 @@ export function setUserName(name: string): void {
 export function clearUserName(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(USER_NAME_KEY);
+  // Reset the anonymous reviewer id too — otherwise the next reviewer on the
+  // same device inherits the previous user_id and `upsertSelection`'s
+  // (style_id, user_id) conflict overwrites the prior reviewer's decisions.
+  localStorage.removeItem(USER_ID_KEY);
 }
 
 export function formatTimeAgo(dateStr: string): string {
