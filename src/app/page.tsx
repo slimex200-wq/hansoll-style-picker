@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Memo, Selection, SelectionStatus, Style } from "@/lib/types";
 import { deleteSelection, fetchMemos, fetchMemosByStyle, fetchSelections, fetchStyles, insertMemo, upsertSelection } from "@/lib/api";
 import { clearUserName, getUserId, getUserName, setUserName } from "@/lib/store";
+import { useIsMobile } from "@/lib/use-is-mobile";
 import NamePrompt from "@/components/NamePrompt";
 import ToastContainer, { showToast } from "@/components/Toast";
 import HandoffStyles from "@/components/handoff/HandoffStyles";
@@ -51,6 +52,12 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
+
+  const isMobile = useIsMobile();
+  // Mobile uses gallery view always; desktop respects user preference.
+  const effectiveView: ViewMode = isMobile ? "gallery" : view;
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -104,7 +111,17 @@ export default function Home() {
     setSelectedId(null);
     setShowSummary(false);
     setLightboxOpen(false);
+    setMobileSidebarOpen(false);
+    setMobileDetailOpen(false);
   }, []);
+
+  const handleSelectStyle = useCallback(
+    (id: string) => {
+      setSelectedId(id);
+      if (isMobile) setMobileDetailOpen(true);
+    },
+    [isMobile]
+  );
 
   const getSelectionKey = useCallback(
     (styleId: string) => `${styleId}:${userId}`,
@@ -318,6 +335,28 @@ export default function Home() {
     [selectedStyle, visibleStyles]
   );
 
+  // Auto-close mobile-only overlays when the viewport grows past the
+  // breakpoint, so desktop users never see leftover drawer/modal state.
+  useEffect(() => {
+    if (!isMobile) {
+      setMobileSidebarOpen(false);
+      setMobileDetailOpen(false);
+    }
+  }, [isMobile]);
+
+  // Lock body scroll while a mobile overlay is up so the underlying page
+  // does not bleed-through when the user pans inside the drawer or detail.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const lock = isMobile && (mobileSidebarOpen || mobileDetailOpen);
+    if (!lock) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [isMobile, mobileSidebarOpen, mobileDetailOpen]);
+
   // Keyboard shortcuts: 1/2/3 decisions, navigation, and view toggles.
   useEffect(() => {
     if (!userId || !userName) return;
@@ -336,6 +375,16 @@ export default function Home() {
         if (showSummary) {
           event.preventDefault();
           setShowSummary(false);
+          return;
+        }
+        if (mobileDetailOpen) {
+          event.preventDefault();
+          setMobileDetailOpen(false);
+          return;
+        }
+        if (mobileSidebarOpen) {
+          event.preventDefault();
+          setMobileSidebarOpen(false);
           return;
         }
         if (inField && target instanceof HTMLElement) {
@@ -357,6 +406,7 @@ export default function Home() {
         return;
       }
       if (key === "g") {
+        if (isMobile) return;
         event.preventDefault();
         setView((current) => (current === "list" ? "gallery" : "list"));
         return;
@@ -389,7 +439,7 @@ export default function Home() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleSelect, lightboxOpen, moveSelection, selectedStyle, showSummary, userId, userName]);
+  }, [handleSelect, isMobile, lightboxOpen, mobileDetailOpen, mobileSidebarOpen, moveSelection, selectedStyle, showSummary, userId, userName]);
 
   const avatarInitials = useMemo(() => {
     if (!userName) return "HS";
@@ -474,21 +524,36 @@ export default function Home() {
             avatarInitials={avatarInitials}
             userName={userName}
             onLogout={handleLogout}
+            onOpenMobileMenu={isMobile ? () => setMobileSidebarOpen(true) : undefined}
+            hideViewToggle={isMobile}
           />
           <div className="mock-body">
+            {isMobile && mobileSidebarOpen && (
+              <div
+                className="mock-sidebar-backdrop"
+                onClick={() => setMobileSidebarOpen(false)}
+                aria-hidden="true"
+              />
+            )}
             <Sidebar
               divisions={divisions}
               activeDivision={currentDivision}
               setActiveDivision={(division) => {
                 setActiveDivision(division);
                 setFilter("all");
+                setMobileSidebarOpen(false);
               }}
               counts={counts}
               reviewedPct={reviewedPct}
               filter={filter}
               setFilter={setFilter}
               collectionLabel={collectionLabel}
-              onSummary={() => setShowSummary(true)}
+              onSummary={() => {
+                setShowSummary(true);
+                setMobileSidebarOpen(false);
+              }}
+              mobileOpen={isMobile && mobileSidebarOpen}
+              onCloseMobile={isMobile ? () => setMobileSidebarOpen(false) : undefined}
             />
 
             <main className="mock-content">
@@ -508,12 +573,12 @@ export default function Home() {
                 <div style={{ padding: 64, textAlign: "center", color: PALETTE.inkLight }}>
                   No styles match this view.
                 </div>
-              ) : view === "list" ? (
+              ) : effectiveView === "list" ? (
                 <ListView
                   styles={visibleStyles}
                   getStatus={(style) => getStatusForStyle(style.id)}
                   selectedId={selectedStyle?.id ?? null}
-                  onSelectStyle={setSelectedId}
+                  onSelectStyle={handleSelectStyle}
                   onDecision={(style, status) => void handleSelect(style.id, status)}
                 />
               ) : (
@@ -521,7 +586,7 @@ export default function Home() {
                   styles={visibleStyles}
                   getStatus={(style) => getStatusForStyle(style.id)}
                   selectedId={selectedStyle?.id ?? null}
-                  onSelectStyle={setSelectedId}
+                  onSelectStyle={handleSelectStyle}
                   onDecision={(style, status) => void handleSelect(style.id, status)}
                   getMemoCount={(style) => styleMemos.get(style.id)?.memos.length ?? 0}
                 />
@@ -556,7 +621,7 @@ export default function Home() {
               </div>
             </main>
 
-            {selectedStyle && (
+            {selectedStyle && (!isMobile || mobileDetailOpen) && (
               <DetailPanel
                 style={selectedStyle}
                 status={selectedStatus}
@@ -574,6 +639,8 @@ export default function Home() {
                     ? () => setLightboxOpen(true)
                     : undefined
                 }
+                fullscreen={isMobile && mobileDetailOpen}
+                onCloseFullscreen={isMobile ? () => setMobileDetailOpen(false) : undefined}
               />
             )}
           </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Grid2X2, List, LogOut, Search, Upload } from "lucide-react";
+import { Grid2X2, List, LogOut, Menu, Search, Upload } from "lucide-react";
 import Link from "next/link";
 import Mono from "./Mono";
 import type { ViewMode } from "./palette";
@@ -18,6 +18,8 @@ export default function TopBar({
   uploadHref = "/admin/upload",
   showUpload = true,
   onLogout,
+  onOpenMobileMenu,
+  hideViewToggle = false,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -31,10 +33,22 @@ export default function TopBar({
   uploadHref?: string;
   showUpload?: boolean;
   onLogout?: () => void;
+  onOpenMobileMenu?: () => void;
+  hideViewToggle?: boolean;
 }) {
   return (
     <header className="mock-topbar">
       <div className="mock-top-left">
+        {onOpenMobileMenu && (
+          <button
+            type="button"
+            className="mock-mobile-menu-button"
+            onClick={onOpenMobileMenu}
+            aria-label="Open menu"
+          >
+            <Menu size={16} />
+          </button>
+        )}
         <Mono muted>Outlet</Mono>
         <span className="mock-dot-separator" />
         <Mono>{total} styles</Mono>
@@ -51,24 +65,26 @@ export default function TopBar({
         <span className="mock-kbd">/</span>
       </label>
       <div className="mock-actions">
-        <div className="mock-segmented">
-          <button
-            className={view === "list" ? "active" : ""}
-            onClick={() => setView("list")}
-            aria-label="List view"
-          >
-            <List size={14} />
-            <span>List</span>
-          </button>
-          <button
-            className={view === "gallery" ? "active" : ""}
-            onClick={() => setView("gallery")}
-            aria-label="Gallery view"
-          >
-            <Grid2X2 size={14} />
-            <span>Gallery</span>
-          </button>
-        </div>
+        {!hideViewToggle && (
+          <div className="mock-segmented">
+            <button
+              className={view === "list" ? "active" : ""}
+              onClick={() => setView("list")}
+              aria-label="List view"
+            >
+              <List size={14} />
+              <span>List</span>
+            </button>
+            <button
+              className={view === "gallery" ? "active" : ""}
+              onClick={() => setView("gallery")}
+              aria-label="Gallery view"
+            >
+              <Grid2X2 size={14} />
+              <span>Gallery</span>
+            </button>
+          </div>
+        )}
         {showUpload && (
           <Link className="mock-upload" href={uploadHref}>
             <Upload size={14} />

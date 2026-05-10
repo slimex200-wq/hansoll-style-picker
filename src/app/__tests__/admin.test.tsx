@@ -1,7 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import AdminPage from "../admin/page";
+import { useIsMobile } from "@/lib/use-is-mobile";
 import type { Style, Selection, Memo } from "@/lib/types";
+
+vi.mock("@/lib/use-is-mobile", () => ({
+  useIsMobile: vi.fn(() => false),
+}));
 
 const mockStyles: Style[] = [
   {
@@ -84,6 +90,7 @@ import { fetchStyles, fetchSelections, fetchMemos } from "@/lib/api";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(useIsMobile).mockReturnValue(false);
 });
 
 describe("AdminPage", () => {
@@ -154,5 +161,31 @@ describe("AdminPage", () => {
     render(<AdminPage />);
 
     expect(await screen.findByText(/2 reviewers/)).toBeInTheDocument();
+  });
+
+  it("opens the sidebar drawer via the hamburger button on mobile", async () => {
+    vi.mocked(fetchStyles).mockResolvedValue(mockStyles);
+    vi.mocked(fetchSelections).mockResolvedValue(mockSelections);
+    vi.mocked(fetchMemos).mockResolvedValue([]);
+    vi.mocked(useIsMobile).mockReturnValue(true);
+
+    render(<AdminPage />);
+
+    await screen.findByText("STYLE-001");
+    expect(document.querySelector(".mock-sidebar.mobile-open")).not.toBeInTheDocument();
+
+    const openBtn = document.querySelector<HTMLButtonElement>(".mock-mobile-menu-button");
+    expect(openBtn).not.toBeNull();
+    await userEvent.click(openBtn!);
+    await waitFor(() =>
+      expect(document.querySelector(".mock-sidebar.mobile-open")).toBeInTheDocument()
+    );
+
+    const closeBtn = document.querySelector<HTMLButtonElement>(".mock-sidebar-close");
+    expect(closeBtn).not.toBeNull();
+    await userEvent.click(closeBtn!);
+    await waitFor(() =>
+      expect(document.querySelector(".mock-sidebar.mobile-open")).not.toBeInTheDocument()
+    );
   });
 });
