@@ -306,16 +306,17 @@ export const HANDOFF_VIEW_CSS = `
   background: ${PALETTE.bg};
 }
 .mock-thumb-tabs button {
-  height: 30px;
+  padding: 0;
   border: 1px solid ${PALETTE.rule};
   border-radius: 4px;
   background: ${PALETTE.panel};
   color: ${PALETTE.inkSoft};
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  font-size: 10px;
-  font-weight: 700;
   cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  transition: border-color 100ms ease-out, box-shadow 100ms ease-out;
 }
 .mock-thumb-tabs button.active {
   border-color: ${PALETTE.ink};
@@ -324,6 +325,39 @@ export const HANDOFF_VIEW_CSS = `
 }
 .mock-thumb-tabs button[data-empty] {
   opacity: 0.55;
+}
+.mock-thumb-tabs-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  background: #f5f3ee;
+  overflow: hidden;
+}
+.mock-thumb-tabs-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.mock-thumb-tabs-placeholder {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 14px;
+  color: ${PALETTE.inkLight};
+}
+.mock-thumb-tabs-label {
+  padding: 4px 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-align: center;
+  background: ${PALETTE.panel};
+  color: inherit;
+}
+.mock-thumb-tabs button.active .mock-thumb-tabs-label {
+  font-weight: 700;
 }
 .mock-detail-scroll {
   flex: 1;
