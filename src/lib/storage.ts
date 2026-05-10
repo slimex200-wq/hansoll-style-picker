@@ -33,6 +33,36 @@ export async function uploadStyleImage(
   return `${url}/storage/v1/object/public/style-images/${path}`;
 }
 
+export type StyleVariantKind = "fabric" | "detail";
+
+export async function uploadStyleVariantImage(
+  imageData: Uint8Array,
+  mimeType: string,
+  collection: string,
+  styleId: string,
+  kind: StyleVariantKind
+): Promise<string> {
+  const ext = mimeType.includes("png")
+    ? "png"
+    : mimeType.includes("webp")
+      ? "webp"
+      : "jpg";
+  const path = `${collection}/${styleId}/${kind}.${ext}`;
+
+  const { error } = await getServerSupabase()
+    .storage.from("style-images")
+    .upload(path, imageData, {
+      contentType: mimeType,
+      upsert: true,
+    });
+
+  if (error) throw new Error(`Variant image upload failed: ${error.message}`);
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  // Cache-bust so replaced images render immediately for clients holding old URLs.
+  return `${url}/storage/v1/object/public/style-images/${path}?v=${Date.now()}`;
+}
+
 export async function uploadTempImage(
   imageData: Uint8Array,
   mimeType: string,

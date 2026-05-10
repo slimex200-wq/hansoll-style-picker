@@ -8,6 +8,8 @@ import type { Memo, Selection, SelectionStatus, Style } from "@/lib/types";
 import { fetchMemos, fetchSelections, fetchStyles } from "@/lib/api";
 import HandoffStyles from "@/components/handoff/HandoffStyles";
 import Mono from "@/components/handoff/Mono";
+import StyleImageUploader from "@/components/admin/StyleImageUploader";
+import ToastContainer, { showToast } from "@/components/Toast";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import {
   PALETTE,
@@ -269,6 +271,28 @@ export default function AdminPage() {
                   filteredStyles.map((style) => {
                     const { counts, total } = getVotesForStyle(style.id);
                     const latestMemo = getLatestMemo(style.id);
+                    const handleVariantUpload = (
+                      kind: "fabric" | "detail",
+                      url: string
+                    ) => {
+                      setStyles((prev) =>
+                        prev.map((s) =>
+                          s.id === style.id
+                            ? {
+                                ...s,
+                                fabric_image_url:
+                                  kind === "fabric" ? url : s.fabric_image_url,
+                                detail_image_url:
+                                  kind === "detail" ? url : s.detail_image_url,
+                              }
+                            : s
+                        )
+                      );
+                      showToast(
+                        `${kind === "fabric" ? "Fabric" : "Detail"} image saved for ${style.id}`,
+                        "success"
+                      );
+                    };
                     return (
                       <article key={style.id} className="admin-row">
                         <div className="admin-row-thumb">
@@ -282,6 +306,26 @@ export default function AdminPage() {
                             <Mono muted>{style.division}</Mono>
                           </div>
                           <p>{style.contents}{style.construction ? ` · ${style.construction}` : ""}{style.weight ? ` · ${style.weight}` : ""}</p>
+                          <div className="admin-variant-row">
+                            <StyleImageUploader
+                              styleId={style.id}
+                              kind="fabric"
+                              currentUrl={style.fabric_image_url ?? null}
+                              onUploaded={(url) => handleVariantUpload("fabric", url)}
+                              onError={(message) =>
+                                showToast(`Fabric upload failed: ${message}`, "error")
+                              }
+                            />
+                            <StyleImageUploader
+                              styleId={style.id}
+                              kind="detail"
+                              currentUrl={style.detail_image_url ?? null}
+                              onUploaded={(url) => handleVariantUpload("detail", url)}
+                              onError={(message) =>
+                                showToast(`Detail upload failed: ${message}`, "error")
+                              }
+                            />
+                          </div>
                           {total > 0 ? (
                             <div className="admin-vote-row">
                               {(["shortlist", "maybe", "pass"] as SelectionStatus[]).map((s) =>
@@ -375,7 +419,85 @@ export default function AdminPage() {
         .admin-latest-memo b {
           color: ${PALETTE.peach};
         }
+        .admin-variant-row {
+          margin-top: 6px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .style-img-uploader {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 4px 8px 4px 4px;
+          border: 1px dashed ${PALETTE.rule};
+          border-radius: 6px;
+          background: ${PALETTE.bg};
+          color: ${PALETTE.ink};
+          font-size: 11px;
+          cursor: pointer;
+          transition: border-color 0.15s, background 0.15s;
+        }
+        .style-img-uploader:hover:not([data-busy]) {
+          border-color: ${PALETTE.peach};
+          background: ${PALETTE.panel};
+        }
+        .style-img-uploader[data-busy] {
+          opacity: 0.6;
+          cursor: wait;
+        }
+        .style-img-uploader:focus-visible {
+          outline: 2px solid ${PALETTE.peach};
+          outline-offset: 2px;
+        }
+        .style-img-uploader-thumb {
+          position: relative;
+          width: 40px;
+          height: 40px;
+          border-radius: 4px;
+          background: ${PALETTE.panel};
+          border: 1px solid ${PALETTE.ruleSoft};
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+        .style-img-uploader-thumb img {
+          object-fit: cover;
+        }
+        .style-img-uploader-empty {
+          color: ${PALETTE.inkLight};
+          font-size: 18px;
+          font-weight: 300;
+        }
+        .style-img-uploader-spinner {
+          position: absolute;
+          inset: 0;
+          background: rgba(255, 255, 255, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: ${PALETTE.peach};
+        }
+        .style-img-uploader-meta {
+          display: flex;
+          flex-direction: column;
+          gap: 0;
+          line-height: 1.2;
+          text-align: left;
+        }
+        .style-img-uploader-meta b {
+          font-size: 11px;
+          font-weight: 600;
+          color: ${PALETTE.ink};
+        }
+        .style-img-uploader-meta span {
+          font-size: 10px;
+          color: ${PALETTE.inkLight};
+        }
       `}</style>
+      <ToastContainer />
     </>
   );
 }

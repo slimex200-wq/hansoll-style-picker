@@ -1,14 +1,17 @@
 "use client";
 
+export type UploadTabId = "pdf" | "zip" | "excel" | "imageZip";
+
 interface UploadTabsProps {
-  activeTab: "pdf" | "zip" | "excel";
-  onTabChange: (tab: "pdf" | "zip" | "excel") => void;
+  activeTab: UploadTabId;
+  onTabChange: (tab: UploadTabId) => void;
 }
 
-const TABS = [
-  { id: "pdf" as const, label: "PDF Upload", shortLabel: "PDF" },
-  { id: "zip" as const, label: "Parsed ZIP Upload", shortLabel: "ZIP" },
-  { id: "excel" as const, label: "Excel Mapping Upload", shortLabel: "Excel Mapping" },
+const TABS: Array<{ id: UploadTabId; label: string; shortLabel: string }> = [
+  { id: "pdf", label: "PDF Upload", shortLabel: "PDF" },
+  { id: "zip", label: "Parsed ZIP Upload", shortLabel: "ZIP" },
+  { id: "excel", label: "Excel Mapping Upload", shortLabel: "Excel Mapping" },
+  { id: "imageZip", label: "Style Image Batch", shortLabel: "Images" },
 ];
 
 export default function UploadTabs({ activeTab, onTabChange }: UploadTabsProps) {
