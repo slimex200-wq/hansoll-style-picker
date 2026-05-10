@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Memo, Selection, SelectionStatus, Style } from "@/lib/types";
 import { fetchMemos, fetchMemosByStyle, fetchSelections, fetchStyles, insertMemo, upsertSelection } from "@/lib/api";
-import { getUserId, getUserName, setUserName } from "@/lib/store";
+import { clearUserName, getUserId, getUserName, setUserName } from "@/lib/store";
 import NamePrompt from "@/components/NamePrompt";
 import ToastContainer, { showToast } from "@/components/Toast";
 import HandoffStyles from "@/components/handoff/HandoffStyles";
@@ -96,6 +96,14 @@ export default function Home() {
     setUserName(name);
     setUserNameState(name);
     setUserId(getUserId());
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    clearUserName();
+    setUserNameState(null);
+    setSelectedId(null);
+    setShowSummary(false);
+    setLightboxOpen(false);
   }, []);
 
   const getSelectionKey = useCallback(
@@ -446,6 +454,7 @@ export default function Home() {
             total={styles.length}
             avatarInitials={avatarInitials}
             userName={userName}
+            onLogout={handleLogout}
           />
           <div className="mock-body">
             <Sidebar
