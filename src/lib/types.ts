@@ -14,6 +14,8 @@ export interface Style {
   designed_by: string;
   image_url: string;
   images: string[];
+  fabric_image_url?: string | null;
+  detail_image_url?: string | null;
   fabric_suggestion: {
     fabric_no: string;
     contents: string;
