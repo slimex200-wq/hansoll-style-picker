@@ -21,6 +21,11 @@ export function setUserName(name: string): void {
   getUserId();
 }
 
+export function clearUserName(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(USER_NAME_KEY);
+}
+
 export function formatTimeAgo(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();

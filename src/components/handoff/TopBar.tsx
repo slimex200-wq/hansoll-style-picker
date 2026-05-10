@@ -1,6 +1,6 @@
 "use client";
 
-import { Grid2X2, List, Search, Upload } from "lucide-react";
+import { Grid2X2, List, LogOut, Search, Upload } from "lucide-react";
 import Link from "next/link";
 import Mono from "./Mono";
 import type { ViewMode } from "./palette";
@@ -17,6 +17,7 @@ export default function TopBar({
   userName,
   uploadHref = "/admin/upload",
   showUpload = true,
+  onLogout,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -29,6 +30,7 @@ export default function TopBar({
   userName?: string | null;
   uploadHref?: string;
   showUpload?: boolean;
+  onLogout?: () => void;
 }) {
   return (
     <header className="mock-topbar">
@@ -76,6 +78,17 @@ export default function TopBar({
         <div className="mock-user-block">
           <span className="mock-avatar" aria-label="Reviewer avatar">{avatarInitials}</span>
           {userName && <span className="mock-user-name">{userName}</span>}
+          {onLogout && (
+            <button
+              type="button"
+              className="mock-user-logout"
+              aria-label="Switch reviewer"
+              title="Switch reviewer"
+              onClick={onLogout}
+            >
+              <LogOut size={14} />
+            </button>
+          )}
         </div>
       </div>
     </header>

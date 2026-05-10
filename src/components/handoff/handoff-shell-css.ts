@@ -168,6 +168,23 @@ export const HANDOFF_SHELL_CSS = `
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.mock-user-logout {
+  width: 26px;
+  height: 26px;
+  border: 1px solid ${PALETTE.rule};
+  border-radius: 5px;
+  background: ${PALETTE.panel};
+  color: ${PALETTE.inkSoft};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 100ms ease-out, color 100ms ease-out;
+}
+.mock-user-logout:hover {
+  background: ${PALETTE.peachBg};
+  color: ${PALETTE.peach};
+}
 .mock-body {
   flex: 1;
   display: flex;
