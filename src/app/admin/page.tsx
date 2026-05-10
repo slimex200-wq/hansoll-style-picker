@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Style, Selection, Memo } from "@/lib/types";
-import { fetchStyles, fetchSelections, fetchMemos } from "@/lib/api";
-import { STATUS_CONFIG } from "@/lib/store";
+import type { Memo, Selection, SelectionStatus, Style } from "@/lib/types";
+import { fetchMemos, fetchSelections, fetchStyles } from "@/lib/api";
+import HandoffStyles from "@/components/handoff/HandoffStyles";
+import Mono from "@/components/handoff/Mono";
+import {
+  PALETTE,
+  STATUS_META,
+  getCollectionLabel,
+} from "@/components/handoff/palette";
+
+type AdminFilter = "all" | "reviewed" | "unreviewed";
 
 export default function AdminPage() {
   const [styles, setStyles] = useState<Style[]>([]);
@@ -13,15 +21,13 @@ export default function AdminPage() {
   const [memos, setMemos] = useState<Memo[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [activeDivision, setActiveDivision] = useState<string>("");
+  const [filter, setFilter] = useState<AdminFilter>("all");
 
   useEffect(() => {
     async function load() {
       try {
-        const [s, sel, m] = await Promise.all([
-          fetchStyles(),
-          fetchSelections(),
-          fetchMemos(),
-        ]);
+        const [s, sel, m] = await Promise.all([fetchStyles(), fetchSelections(), fetchMemos()]);
         setStyles(s);
         setSelections(sel);
         setMemos(m);
@@ -38,170 +44,282 @@ export default function AdminPage() {
   const getVotesForStyle = (styleId: string) => {
     const votes = selections.filter((s) => s.style_id === styleId);
     const counts = { shortlist: 0, maybe: 0, pass: 0 };
-    for (const v of votes) {
-      counts[v.status]++;
-    }
+    for (const v of votes) counts[v.status]++;
     return { votes, counts, total: votes.length };
   };
 
-  const getLatestMemo = (styleId: string): Memo | undefined => {
-    return memos.reduce<Memo | undefined>((latest, m) => {
+  const getLatestMemo = (styleId: string): Memo | undefined =>
+    memos.reduce<Memo | undefined>((latest, m) => {
       if (m.style_id !== styleId) return latest;
       if (!latest) return m;
       return new Date(m.created_at) > new Date(latest.created_at) ? m : latest;
     }, undefined);
-  };
 
-  const uniqueUsers = new Set(selections.map((s) => s.user_id)).size;
+  const uniqueUsers = useMemo(() => new Set(selections.map((s) => s.user_id)).size, [selections]);
+  const divisions = useMemo(() => [...new Set(styles.map((s) => s.division))], [styles]);
+  const currentDivision = activeDivision && divisions.includes(activeDivision) ? activeDivision : divisions[0] ?? "";
+
+  const reviewedStyleIds = useMemo(() => new Set(selections.map((s) => s.style_id)), [selections]);
+
+  const filteredStyles = useMemo(() => {
+    return styles
+      .filter((s) => (currentDivision ? s.division === currentDivision : true))
+      .filter((s) => {
+        if (filter === "reviewed") return reviewedStyleIds.has(s.id);
+        if (filter === "unreviewed") return !reviewedStyleIds.has(s.id);
+        return true;
+      });
+  }, [currentDivision, filter, reviewedStyleIds, styles]);
+
+  const collectionLabel = useMemo(() => getCollectionLabel(styles), [styles]);
 
   if (loading) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "#fafafa" }}>
-        <p style={{ color: "#888", fontSize: 14 }}>Loading...</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: PALETTE.bg }}>
+        <p style={{ color: PALETTE.inkLight, fontSize: 14 }}>Loading...</p>
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <>
-        <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 sticky top-0 z-10">
-          <div className="max-w-[800px] mx-auto flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-lg font-semibold text-[#333]">
-                Selection Summary
-              </h1>
-              <div className="text-[13px] text-[#888] mt-0.5">
-                SP&apos;27 Talbots Outlet
-              </div>
-            </div>
+      <div style={{ minHeight: "100vh", background: PALETTE.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div style={{ width: "100%", maxWidth: 460, background: PALETTE.panel, border: `1px solid ${PALETTE.rule}`, borderRadius: 8, padding: 24 }}>
+          <h2 style={{ margin: "0 0 8px", fontSize: 17, fontWeight: 700, color: PALETTE.ink }}>Data connection unavailable</h2>
+          <p style={{ margin: 0, color: PALETTE.inkSoft, fontSize: 13, lineHeight: 1.5 }}>{loadError}</p>
+          <div style={{ marginTop: 18, display: "flex", gap: 10 }}>
             <Link
               href="/admin/upload"
-              className="shrink-0 whitespace-nowrap text-[13px] text-white bg-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
-            >
-              Upload Data
-            </Link>
-          </div>
-        </header>
-        <main className="max-w-[800px] mx-auto p-4">
-          <div className="bg-white border border-[#eee] rounded-xl p-5">
-            <h2 className="text-[15px] font-semibold text-[#333]">
-              Data connection unavailable
-            </h2>
-            <p className="text-[13px] text-[#777] mt-1.5">
-              {loadError}
-            </p>
-            <Link
-              href="/admin/upload"
-              className="inline-flex mt-4 text-[13px] text-white bg-[#E85D2A] px-3 py-2 rounded-md hover:bg-[#d14e1f] transition-colors"
+              style={{ padding: "10px 14px", background: PALETTE.peach, color: "#fff", borderRadius: 5, textDecoration: "none", fontSize: 13, fontWeight: 600 }}
             >
               Go to Upload Data
             </Link>
+            <Link
+              href="/"
+              style={{ padding: "10px 14px", border: `1px solid ${PALETTE.rule}`, color: PALETTE.ink, borderRadius: 5, textDecoration: "none", fontSize: 13 }}
+            >
+              Back to picker
+            </Link>
           </div>
-        </main>
-      </>
+        </div>
+      </div>
     );
   }
 
   return (
     <>
-      <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 sticky top-0 z-10">
-        <div className="max-w-[800px] mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-[#333]">
-              Selection Summary
-            </h1>
-            <div className="text-[13px] text-[#888] mt-0.5">
-              SP&apos;27 Talbots Outlet &middot; {uniqueUsers} reviewer{uniqueUsers !== 1 ? "s" : ""}
-            </div>
-          </div>
-          <div className="flex w-full flex-wrap justify-start gap-2 sm:w-auto sm:justify-end">
-            <Link
-              href="/admin/upload"
-              className="whitespace-nowrap text-[13px] text-white bg-[#E85D2A] px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-[#d14e1f] transition-colors"
-            >
-              Upload Data
-            </Link>
-            <Link
-              href="/"
-              className="whitespace-nowrap text-[13px] text-[#E85D2A] border border-[#E85D2A] px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
-            >
-              Back
-            </Link>
-          </div>
-        </div>
-      </header>
+      <HandoffStyles />
 
-      <main className="max-w-[800px] mx-auto p-4">
-        {[...new Set(styles.map((s) => s.division))].map((division) => (
-          <section key={division} className="mb-6">
-            <h2 className="text-[14px] font-semibold text-[#333] mb-2">
-              {division}{" "}
-              <span className="font-normal text-[#888]">
-                ({styles.filter((s) => s.division === division).length})
-              </span>
-            </h2>
-            <div className="space-y-3">
-          {styles.filter((s) => s.division === division).map((style) => {
-            const { counts, total } = getVotesForStyle(style.id);
-            const latestMemo = getLatestMemo(style.id);
-            return (
-              <div
-                key={style.id}
-                className="bg-white border border-[#eee] rounded-xl p-4 flex gap-4"
-              >
-                <div className="w-20 h-[100px] bg-[#f0f0f0] rounded-lg flex-shrink-0 overflow-hidden relative">
-                  <Image
-                    src={style.image_url}
-                    alt={style.id}
-                    fill
-                    className="object-cover"
-                    sizes="80px"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-[15px] font-semibold text-[#333]">
-                    {style.id}
-                  </h3>
-                  <div className="text-xs text-[#888] leading-snug" style={{ overflowWrap: "anywhere" }}>
-                    <div>{style.contents}</div>
-                    <div>
-                      {style.construction}
-                      {style.weight ? ` · ${style.weight}` : ""}
-                    </div>
-                  </div>
-                  {total > 0 ? (
-                    <div className="flex gap-2 mt-2">
-                      {(["shortlist", "maybe", "pass"] as const).map((s) =>
-                        counts[s] > 0 ? (
-                          <span
-                            key={s}
-                            className={`text-xs px-2 py-0.5 rounded-full ${STATUS_CONFIG[s].bg} ${STATUS_CONFIG[s].text}`}
-                          >
-                            {STATUS_CONFIG[s].label} {counts[s]}
-                          </span>
-                        ) : null
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-[13px] text-[#aaa] mt-2">
-                      No votes yet
-                    </div>
-                  )}
-                  {latestMemo && (
-                    <div className="text-[12px] text-[#666] mt-1.5 truncate">
-                      <span className="font-medium text-[#E85D2A]">{latestMemo.user_name}:</span>{" "}
-                      {latestMemo.content}
-                    </div>
-                  )}
+      <div className="mock-page">
+        <div className="mock-shell">
+          <header className="mock-topbar">
+            <div className="mock-top-left">
+              <Mono muted>Admin</Mono>
+              <span className="mock-dot-separator" />
+              <Mono>{styles.length} styles</Mono>
+              <Mono muted>{uniqueUsers} reviewer{uniqueUsers !== 1 ? "s" : ""}</Mono>
+            </div>
+            <div />
+            <div className="mock-actions">
+              <Link className="mock-upload" href="/admin/upload">
+                Upload Data
+              </Link>
+              <Link className="mock-upload" href="/" style={{ background: PALETTE.peach, color: "#fff", borderColor: PALETTE.peach }}>
+                Back to picker
+              </Link>
+            </div>
+          </header>
+
+          <div className="mock-body">
+            <aside className="mock-sidebar">
+              <div className="mock-sidebar-block">
+                <Mono muted>Workspace</Mono>
+                <div className="mock-brand-mark">
+                  <span>H</span>
+                  HANSOLL {collectionLabel}
                 </div>
               </div>
-            );
-          })}
-            </div>
-          </section>
-        ))}
-      </main>
+
+              <div className="mock-sidebar-block">
+                <Mono muted>Reviewers</Mono>
+                <div className="mock-progress-title">
+                  <span>Talbots Outlet</span>
+                  <Mono>{uniqueUsers}</Mono>
+                </div>
+                <div className="mock-progress-meta">
+                  <Mono muted>{reviewedStyleIds.size}/{styles.length} reviewed</Mono>
+                </div>
+              </div>
+
+              {divisions.length > 0 && (
+                <div className="mock-sidebar-block">
+                  <Mono muted>Division</Mono>
+                  <div className="mock-menu">
+                    {divisions.map((division) => (
+                      <button
+                        key={division}
+                        className={division === currentDivision ? "active" : ""}
+                        onClick={() => setActiveDivision(division)}
+                      >
+                        <span>{division}</span>
+                        <Mono muted>{styles.filter((s) => s.division === division).length}</Mono>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="mock-sidebar-block mock-sidebar-grow">
+                <Mono muted>Filter</Mono>
+                <div className="mock-menu">
+                  {([
+                    { key: "all", label: "All styles", count: styles.length },
+                    { key: "reviewed", label: "Reviewed", count: reviewedStyleIds.size },
+                    { key: "unreviewed", label: "Unreviewed", count: styles.length - reviewedStyleIds.size },
+                  ] as Array<{ key: AdminFilter; label: string; count: number }>).map((item) => (
+                    <button
+                      key={item.key}
+                      className={filter === item.key ? "active" : ""}
+                      onClick={() => setFilter(item.key)}
+                    >
+                      <span>{item.label}</span>
+                      <Mono muted>{item.count}</Mono>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mock-sidebar-footer">
+                <Link href="/" className="mock-sidebar-summary">
+                  Back to picker
+                </Link>
+              </div>
+            </aside>
+
+            <main className="mock-content">
+              <div className="mock-content-header">
+                <div>
+                  <h1>{currentDivision || "Selection summary"}</h1>
+                  <p>
+                    {filteredStyles.length} shown &middot; aggregate vote counts and the latest memo per style.
+                  </p>
+                </div>
+              </div>
+
+              <div className="admin-table">
+                {filteredStyles.length === 0 ? (
+                  <div style={{ padding: 64, textAlign: "center", color: PALETTE.inkLight }}>No styles to summarise.</div>
+                ) : (
+                  filteredStyles.map((style) => {
+                    const { counts, total } = getVotesForStyle(style.id);
+                    const latestMemo = getLatestMemo(style.id);
+                    return (
+                      <article key={style.id} className="admin-row">
+                        <div className="admin-row-thumb">
+                          {style.image_url ? (
+                            <Image src={style.image_url} alt={style.id} fill sizes="80px" className="admin-row-img" />
+                          ) : null}
+                        </div>
+                        <div className="admin-row-body">
+                          <div className="admin-row-head">
+                            <Mono>{style.id}</Mono>
+                            <Mono muted>{style.division}</Mono>
+                          </div>
+                          <p>{style.contents}{style.construction ? ` · ${style.construction}` : ""}{style.weight ? ` · ${style.weight}` : ""}</p>
+                          {total > 0 ? (
+                            <div className="admin-vote-row">
+                              {(["shortlist", "maybe", "pass"] as SelectionStatus[]).map((s) =>
+                                counts[s] > 0 ? (
+                                  <span
+                                    key={s}
+                                    className="mock-status"
+                                    style={{ color: STATUS_META[s].color, background: STATUS_META[s].bg }}
+                                  >
+                                    <span style={{ background: STATUS_META[s].color }} />
+                                    {STATUS_META[s].label} {counts[s]}
+                                  </span>
+                                ) : null
+                              )}
+                            </div>
+                          ) : (
+                            <p className="mock-empty-copy">No votes yet</p>
+                          )}
+                          {latestMemo && (
+                            <p className="admin-latest-memo">
+                              <b>{latestMemo.user_name}:</b> {latestMemo.content}
+                            </p>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })
+                )}
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
+        .admin-table {
+          padding: 16px;
+          display: grid;
+          gap: 12px;
+        }
+        .admin-row {
+          display: grid;
+          grid-template-columns: 80px 1fr;
+          gap: 14px;
+          padding: 12px;
+          border: 1px solid ${PALETTE.rule};
+          border-radius: 8px;
+          background: ${PALETTE.panel};
+        }
+        .admin-row-thumb {
+          width: 80px;
+          height: 100px;
+          position: relative;
+          background: ${PALETTE.bg};
+          border: 1px solid ${PALETTE.ruleSoft};
+          border-radius: 4px;
+          overflow: hidden;
+        }
+        .admin-row-img {
+          object-fit: cover;
+        }
+        .admin-row-body {
+          display: grid;
+          gap: 4px;
+        }
+        .admin-row-head {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .admin-row-body p {
+          margin: 0;
+          color: ${PALETTE.inkSoft};
+          font-size: 12px;
+          line-height: 1.5;
+        }
+        .admin-vote-row {
+          margin-top: 4px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .admin-latest-memo {
+          margin-top: 4px !important;
+          padding-top: 6px;
+          border-top: 1px solid ${PALETTE.ruleSoft};
+          color: ${PALETTE.inkSoft};
+          font-size: 12px;
+        }
+        .admin-latest-memo b {
+          color: ${PALETTE.peach};
+        }
+      `}</style>
     </>
   );
 }

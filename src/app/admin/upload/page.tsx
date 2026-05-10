@@ -6,6 +6,9 @@ import UploadTabs from "@/components/admin/UploadTabs";
 import FileDropzone from "@/components/admin/FileDropzone";
 import ParsePreview from "@/components/admin/ParsePreview";
 import ToastContainer, { showToast } from "@/components/Toast";
+import HandoffStyles from "@/components/handoff/HandoffStyles";
+import Mono from "@/components/handoff/Mono";
+import { PALETTE } from "@/components/handoff/palette";
 import type { FabricDetail } from "@/lib/fabric-details";
 import { parseFabricMappingWorkbook } from "@/lib/parsers/xlsx-parser";
 
@@ -199,22 +202,29 @@ export default function UploadPage() {
 
   return (
     <>
-      <header className="bg-white border-b border-[#e0e0e0] px-4 py-4 sticky top-0 z-10">
-        <div className="max-w-[800px] mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-[#333]">Upload Styles</h1>
-            <div className="text-[13px] text-[#888] mt-0.5">
-              Import from PDF, parsed ZIP, or Excel mapping
-            </div>
+      <HandoffStyles />
+      <div style={{ minHeight: "100vh", background: PALETTE.bg }}>
+        <header className="mock-topbar" style={{ position: "sticky", top: 0, zIndex: 10 }}>
+          <div className="mock-top-left">
+            <Mono muted>Admin</Mono>
+            <span className="mock-dot-separator" />
+            <Mono>Upload Styles</Mono>
+            <span style={{ color: PALETTE.inkLight, fontSize: 12 }}>Import from PDF, parsed ZIP, or Excel mapping</span>
           </div>
-          <Link
-            href="/admin"
-            className="text-[13px] text-[#E85D2A] border border-[#E85D2A] px-3 py-1.5 rounded-md hover:bg-[#FFF5F0] transition-colors"
-          >
-            Back
-          </Link>
-        </div>
-      </header>
+          <div />
+          <div className="mock-actions">
+            <Link className="mock-upload" href="/admin">
+              Back to summary
+            </Link>
+            <Link
+              className="mock-upload"
+              href="/"
+              style={{ background: PALETTE.peach, color: "#fff", borderColor: PALETTE.peach }}
+            >
+              Back to picker
+            </Link>
+          </div>
+        </header>
 
       <main className="max-w-[800px] mx-auto p-4">
         {state === "idle" && (
@@ -373,6 +383,7 @@ export default function UploadPage() {
           </div>
         )}
       </main>
+      </div>
 
       <ToastContainer />
     </>

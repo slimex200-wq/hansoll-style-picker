@@ -104,8 +104,8 @@ describe("AdminPage", () => {
     render(<AdminPage />);
 
     expect(await screen.findByText("STYLE-001")).toBeInTheDocument();
-    expect(screen.getByText(/Shortlist 1/)).toBeInTheDocument();
-    expect(screen.getByText(/Maybe 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Pick 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Hold 1/)).toBeInTheDocument();
   });
 
   it("shows an upload fallback when data loading fails", async () => {
