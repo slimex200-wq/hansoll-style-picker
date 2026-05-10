@@ -59,14 +59,25 @@ export default function Home() {
   // Mobile uses gallery view always; desktop respects user preference.
   const effectiveView: ViewMode = isMobile ? "gallery" : view;
 
+  // URL ?collection=... limits the data fetch to one season. Without it,
+  // we fall back to whatever the first style returned identifies as.
+  const [collectionFilter, setCollectionFilter] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const param = new URLSearchParams(window.location.search).get("collection");
+    setCollectionFilter(param && param.trim() ? param.trim() : null);
+  }, []);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
+      const collection = collectionFilter ?? undefined;
       const [stylesData, selectionsData, memosData] = await Promise.all([
-        fetchStyles(),
-        fetchSelections(),
-        fetchMemos(),
+        fetchStyles(collection),
+        fetchSelections(collection),
+        fetchMemos(collection),
       ]);
       setStyles(stylesData);
       const selMap = new Map<string, Selection>();
@@ -90,7 +101,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [collectionFilter]);
 
   useEffect(() => {
     setMounted(true);
