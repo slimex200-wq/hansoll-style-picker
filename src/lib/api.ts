@@ -59,6 +59,19 @@ export async function upsertSelection(
   return data as Selection;
 }
 
+export async function deleteSelection(
+  styleId: string,
+  userId: string
+): Promise<void> {
+  const { error } = await getSupabase()
+    .from("selections")
+    .delete()
+    .eq("style_id", styleId)
+    .eq("user_id", userId);
+
+  if (error) throw new Error(`Failed to clear selection: ${error.message}`);
+}
+
 export interface PaginatedMemos {
   data: Memo[];
   hasMore: boolean;
