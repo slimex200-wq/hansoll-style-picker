@@ -257,6 +257,19 @@ export const HANDOFF_MODAL_CSS = `
   }
 }
 @media (max-width: 940px) {
+  .mock-page {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  .mock-shell {
+    height: auto;
+    min-height: 100vh;
+  }
+  .mock-list,
+  .mock-gallery {
+    overflow: visible;
+  }
   .mock-topbar {
     height: auto;
     min-height: 46px;
@@ -292,7 +305,7 @@ export const HANDOFF_MODAL_CSS = `
   .mock-body {
     position: relative;
     display: block;
-    overflow: hidden;
+    overflow: visible;
   }
   .mock-sidebar {
     position: fixed;
