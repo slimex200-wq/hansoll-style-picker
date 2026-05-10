@@ -116,7 +116,6 @@ export default function Sidebar({
             type="button"
             className="mock-sidebar-summary"
             onClick={onSummary}
-            style={{ display: "flex", justifyContent: "space-between", padding: "0 12px", gap: 8 }}
           >
             <span>Selection summary</span>
             <span className="mock-kbd">S</span>
