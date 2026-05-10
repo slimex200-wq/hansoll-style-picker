@@ -119,6 +119,9 @@ export default function Home() {
   const handleLogout = useCallback(() => {
     clearUserName();
     setUserNameState(null);
+    // Drop the cached user_id so the next reviewer gets a fresh anonymous id
+    // and their decisions don't collide with the previous one's primary key.
+    setUserId(null);
     setSelectedId(null);
     setShowSummary(false);
     setLightboxOpen(false);
