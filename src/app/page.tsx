@@ -19,6 +19,7 @@ import {
   PALETTE,
   getCollectionLabel,
   getFabricRows,
+  pickLatestCollection,
 } from "@/components/handoff/palette";
 import type { FilterKey, ViewMode } from "@/components/handoff/palette";
 
@@ -73,12 +74,30 @@ export default function Home() {
     setLoading(true);
     setLoadError(null);
     try {
-      const collection = collectionFilter ?? undefined;
-      const [stylesData, selectionsData, memosData] = await Promise.all([
-        fetchStyles(collection),
-        fetchSelections(collection),
-        fetchMemos(collection),
+      // Two-phase fetch: when no ?collection= is set, pull every row first,
+      // pick the latest season as the implicit default, then narrow to it.
+      const explicitCollection = collectionFilter ?? undefined;
+      const [allStyles, allSelections, allMemos] = await Promise.all([
+        fetchStyles(explicitCollection),
+        fetchSelections(explicitCollection),
+        fetchMemos(explicitCollection),
       ]);
+
+      const resolvedCollection =
+        explicitCollection ??
+        pickLatestCollection([...new Set(allStyles.map((s) => s.collection))]) ??
+        null;
+
+      const stylesData = resolvedCollection
+        ? allStyles.filter((s) => s.collection === resolvedCollection)
+        : allStyles;
+      const selectionsData = resolvedCollection
+        ? allSelections.filter((s) => s.collection === resolvedCollection)
+        : allSelections;
+      const memosData = resolvedCollection
+        ? allMemos.filter((m) => m.collection === resolvedCollection)
+        : allMemos;
+
       setStyles(stylesData);
       const selMap = new Map<string, Selection>();
       for (const s of selectionsData) selMap.set(`${s.style_id}:${s.user_id}`, s);
