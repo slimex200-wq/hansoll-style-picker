@@ -331,6 +331,7 @@ export const HANDOFF_SHELL_CSS = `
 }
 .mock-sidebar-summary {
   min-height: 34px;
+  padding: 0 12px;
   border: 1px solid ${PALETTE.rule};
   border-radius: 5px;
   background: ${PALETTE.panel};
@@ -338,9 +339,10 @@ export const HANDOFF_SHELL_CSS = `
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  gap: 8px;
   text-decoration: none;
 }
 .mock-sidebar-summary:hover {
