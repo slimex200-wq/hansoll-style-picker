@@ -78,6 +78,38 @@ export const HANDOFF_MODAL_CSS = `
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
+.mock-summary-filters {
+  padding: 0 20px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.mock-summary-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid ${PALETTE.rule};
+  background: ${PALETTE.panel};
+  color: ${PALETTE.inkSoft};
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 100ms ease-out, border-color 100ms ease-out;
+}
+.mock-summary-filter:hover {
+  background: ${PALETTE.bg};
+}
+.mock-summary-filter.active {
+  border-color: ${PALETTE.ink};
+  background: ${PALETTE.ink};
+  color: #fff;
+}
+.mock-summary-filter.active .mock-mono {
+  color: rgba(255, 255, 255, 0.75);
+}
 .mock-summary-table {
   flex: 1;
   overflow: auto;
@@ -97,6 +129,10 @@ export const HANDOFF_MODAL_CSS = `
   top: 0;
   background: ${PALETTE.panel};
   border-bottom: 1px solid ${PALETTE.rule};
+}
+.mock-summary-empty {
+  padding: 40px 0;
+  text-align: center;
 }
 .mock-image-lightbox-overlay {
   position: fixed;
