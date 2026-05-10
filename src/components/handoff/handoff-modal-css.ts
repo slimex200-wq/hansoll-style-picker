@@ -111,22 +111,24 @@ export const HANDOFF_MODAL_CSS = `
 }
 .mock-image-lightbox-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 12px;
+  right: 12px;
   width: 32px;
   height: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(26, 24, 21, 0.85);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 .mock-image-lightbox-close:hover {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  background: #fff;
+  color: rgba(26, 24, 21, 1);
 }
 .mock-image-lightbox-caption {
   position: absolute;
@@ -149,12 +151,18 @@ export const HANDOFF_MODAL_CSS = `
 }
 .mock-image-lightbox-image-wrap {
   position: relative;
-  width: min(90vw, 1100px);
-  height: min(78vh, 900px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-flex;
+  max-width: min(90vw, 1100px);
+  max-height: min(78vh, 900px);
   transition: opacity 200ms ease-out;
+}
+.mock-image-lightbox-image {
+  display: block;
+  max-width: min(90vw, 1100px);
+  max-height: min(78vh, 900px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 .mock-image-lightbox-arrow {
   position: absolute;
