@@ -12,6 +12,7 @@ import TopBar from "@/components/handoff/TopBar";
 import ListView from "@/components/handoff/ListView";
 import GalleryView from "@/components/handoff/GalleryView";
 import DetailPanel from "@/components/handoff/DetailPanel";
+import SummaryModal from "@/components/handoff/SummaryModal";
 import {
   PALETTE,
   getCollectionLabel,
@@ -47,6 +48,7 @@ export default function Home() {
   const [view, setView] = useState<ViewMode>("list");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -403,6 +405,7 @@ export default function Home() {
               filter={filter}
               setFilter={setFilter}
               collectionLabel={collectionLabel}
+              onSummary={() => setShowSummary(true)}
             />
 
             <main className="mock-content">
@@ -459,6 +462,14 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {showSummary && (
+        <SummaryModal
+          styles={styles}
+          collectionLabel={collectionLabel}
+          getStatus={(style) => getStatusForStyle(style.id)}
+          onClose={() => setShowSummary(false)}
+        />
+      )}
       <ToastContainer />
     </>
   );

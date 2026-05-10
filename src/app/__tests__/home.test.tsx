@@ -193,14 +193,23 @@ describe("Home", () => {
     );
   });
 
-  it("links to the admin selection summary", async () => {
+  it("opens the selection summary modal from the sidebar button", async () => {
     vi.mocked(getUserId).mockReturnValue("user-123");
     vi.mocked(getUserName).mockReturnValue("Alice");
 
     render(<Home />);
 
-    const summaryLink = await screen.findByRole("link", { name: "Selection summary" });
-    expect(summaryLink).toHaveAttribute("href", "/admin");
+    const summaryButton = await screen.findByRole("button", { name: /Selection summary/ });
+    await userEvent.click(summaryButton);
+
+    const dialog = await screen.findByRole("dialog", { name: "Selection summary" });
+    expect(dialog).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Close summary" }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Selection summary" })).not.toBeInTheDocument()
+    );
   });
 
   it("updates reviewed count when a selection exists", async () => {

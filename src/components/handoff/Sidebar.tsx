@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Mono from "./Mono";
 import type { FilterKey } from "./palette";
 
@@ -13,7 +12,7 @@ export default function Sidebar({
   filter,
   setFilter,
   collectionLabel,
-  summaryHref = "/admin",
+  onSummary,
   showShortcuts = true,
 }: {
   divisions: string[];
@@ -24,7 +23,7 @@ export default function Sidebar({
   filter: FilterKey;
   setFilter: (filter: FilterKey) => void;
   collectionLabel: string;
-  summaryHref?: string;
+  onSummary?: () => void;
   showShortcuts?: boolean;
 }) {
   const filters: Array<{ key: FilterKey; label: string }> = [
@@ -94,9 +93,17 @@ export default function Sidebar({
       </div>
 
       <div className="mock-sidebar-footer">
-        <Link href={summaryHref} className="mock-sidebar-summary">
-          Selection summary
-        </Link>
+        {onSummary && (
+          <button
+            type="button"
+            className="mock-sidebar-summary"
+            onClick={onSummary}
+            style={{ display: "flex", justifyContent: "space-between", padding: "0 12px", gap: 8 }}
+          >
+            <span>Selection summary</span>
+            <span className="mock-kbd">S</span>
+          </button>
+        )}
         {showShortcuts && (
           <div>
             <Mono muted>Shortcuts</Mono>
