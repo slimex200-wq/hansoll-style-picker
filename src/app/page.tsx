@@ -290,25 +290,75 @@ export default function Home() {
     [selectedStyle, visibleStyles]
   );
 
-  // Keyboard shortcuts: 1/2/3 -> Pick/Hold/Skip on the focused style.
+  // Keyboard shortcuts: 1/2/3 decisions, navigation, and view toggles.
   useEffect(() => {
-    if (!selectedStyle || !userId || !userName) return;
+    if (!userId || !userName) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
       const target = document.activeElement;
-      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || (target as HTMLElement).isContentEditable)) {
+      const inField =
+        !!target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          (target as HTMLElement).isContentEditable);
+
+      if (event.key === "Escape") {
+        if (showSummary) {
+          event.preventDefault();
+          setShowSummary(false);
+          return;
+        }
+        if (inField && target instanceof HTMLElement) {
+          target.blur();
+        }
+        return;
+      }
+
+      if (inField) return;
+      // Modifier keys (other than Shift, which only changes letter case) reserve
+      // browser shortcuts; we still process plain letter shortcuts when Shift is held.
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+
+      const key = event.key.toLowerCase();
+
+      if (key === "/") {
+        event.preventDefault();
+        document.getElementById("topbar-search")?.focus();
+        return;
+      }
+      if (key === "g") {
+        event.preventDefault();
+        setView((current) => (current === "list" ? "gallery" : "list"));
+        return;
+      }
+      if (key === "s") {
+        event.preventDefault();
+        setShowSummary(true);
+        return;
+      }
+      if (key === "m") {
+        event.preventDefault();
+        document.getElementById("memo-input")?.focus();
+        return;
+      }
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        moveSelection("prev");
+        return;
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        moveSelection("next");
         return;
       }
       const status = KEY_TO_STATUS[event.key];
-      if (!status) return;
-      event.preventDefault();
-      if (selectedStyle) {
+      if (status && selectedStyle) {
+        event.preventDefault();
         void handleSelect(selectedStyle.id, status);
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleSelect, selectedStyle, userId, userName]);
+  }, [handleSelect, moveSelection, selectedStyle, showSummary, userId, userName]);
 
   const avatarInitials = useMemo(() => {
     if (!userName) return "HS";
@@ -391,6 +441,7 @@ export default function Home() {
             setView={setView}
             total={styles.length}
             avatarInitials={avatarInitials}
+            userName={userName}
           />
           <div className="mock-body">
             <Sidebar
@@ -443,6 +494,34 @@ export default function Home() {
                   getMemoCount={(style) => styleMemos.get(style.id)?.memos.length ?? 0}
                 />
               )}
+              <div className="mock-status-bar" role="status" aria-live="polite">
+                <span>
+                  {visibleStyles.length} of {styles.length} shown
+                </span>
+                <span className="mock-status-bar-hints">
+                  <span>
+                    <span className="mock-kbd">&larr;</span>
+                    <span className="mock-kbd">&rarr;</span> move
+                  </span>
+                  <span>
+                    <span className="mock-kbd">1</span>
+                    <span className="mock-kbd">2</span>
+                    <span className="mock-kbd">3</span> decide
+                  </span>
+                  <span>
+                    <span className="mock-kbd">g</span> view
+                  </span>
+                  <span>
+                    <span className="mock-kbd">/</span> search
+                  </span>
+                  <span>
+                    <span className="mock-kbd">m</span> memo
+                  </span>
+                  <span>
+                    <span className="mock-kbd">s</span> summary
+                  </span>
+                </span>
+              </div>
             </main>
 
             {selectedStyle && (

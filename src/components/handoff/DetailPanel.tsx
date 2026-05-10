@@ -205,6 +205,7 @@ export default function DetailPanel({
           {onAddMemo && (
             <div className="mock-memo-form">
               <textarea
+                id="memo-input"
                 placeholder="Add buyer or internal note..."
                 rows={3}
                 value={memoDraft}

@@ -14,6 +14,7 @@ export default function TopBar({
   dataSource,
   showDataSource = false,
   avatarInitials,
+  userName,
   uploadHref = "/admin/upload",
   showUpload = true,
 }: {
@@ -25,6 +26,7 @@ export default function TopBar({
   dataSource?: string;
   showDataSource?: boolean;
   avatarInitials: string;
+  userName?: string | null;
   uploadHref?: string;
   showUpload?: boolean;
 }) {
@@ -39,6 +41,7 @@ export default function TopBar({
       <label className="mock-search">
         <Search size={14} />
         <input
+          id="topbar-search"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search style, fabric, supplier"
@@ -70,7 +73,10 @@ export default function TopBar({
             Upload Data
           </Link>
         )}
-        <span className="mock-avatar" aria-label="Reviewer avatar">{avatarInitials}</span>
+        <div className="mock-user-block">
+          <span className="mock-avatar" aria-label="Reviewer avatar">{avatarInitials}</span>
+          {userName && <span className="mock-user-name">{userName}</span>}
+        </div>
       </div>
     </header>
   );

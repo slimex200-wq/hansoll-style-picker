@@ -274,4 +274,84 @@ describe("Home", () => {
       expect(upsertSelection).not.toHaveBeenCalled();
     });
   });
+
+  it("opens the summary modal via the s shortcut and closes via Escape", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+
+    render(<Home />);
+
+    await screen.findByRole("heading", { name: "STYLE-001" });
+
+    fireEvent.keyDown(window, { key: "s" });
+
+    expect(await screen.findByRole("dialog", { name: "Selection summary" })).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    await waitFor(() =>
+      expect(screen.queryByRole("dialog", { name: "Selection summary" })).not.toBeInTheDocument()
+    );
+  });
+
+  it("toggles the gallery view via the g shortcut", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+
+    render(<Home />);
+
+    await screen.findByRole("heading", { name: "STYLE-001" });
+
+    expect(document.querySelector(".mock-list")).toBeInTheDocument();
+    expect(document.querySelector(".mock-gallery")).not.toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "g" });
+
+    await waitFor(() => expect(document.querySelector(".mock-gallery")).toBeInTheDocument());
+    expect(document.querySelector(".mock-list")).not.toBeInTheDocument();
+  });
+
+  it("focuses the search input via the / shortcut", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+
+    render(<Home />);
+
+    await screen.findByRole("heading", { name: "STYLE-001" });
+
+    fireEvent.keyDown(window, { key: "/" });
+
+    expect(document.activeElement).toBe(document.getElementById("topbar-search"));
+  });
+
+  it("focuses the memo input via the m shortcut", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+
+    render(<Home />);
+
+    await screen.findByRole("heading", { name: "STYLE-001" });
+
+    fireEvent.keyDown(window, { key: "m" });
+
+    expect(document.activeElement).toBe(document.getElementById("memo-input"));
+  });
+
+  it("renders the bottom status bar with shown counts", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+
+    render(<Home />);
+
+    expect(await screen.findByText(/1 of 1 shown/)).toBeInTheDocument();
+  });
+
+  it("renders the user name next to the avatar", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice Reviewer");
+
+    render(<Home />);
+
+    expect(await screen.findByText("Alice Reviewer")).toBeInTheDocument();
+  });
 });
