@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import Mono from "./Mono";
 import type { FilterKey } from "./palette";
 
@@ -13,6 +14,8 @@ export default function Sidebar({
   setFilter,
   collectionLabel,
   onSummary,
+  mobileOpen = false,
+  onCloseMobile,
 }: {
   divisions: string[];
   activeDivision: string;
@@ -23,6 +26,8 @@ export default function Sidebar({
   setFilter: (filter: FilterKey) => void;
   collectionLabel: string;
   onSummary?: () => void;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }) {
   const filters: Array<{ key: FilterKey; label: string }> = [
     { key: "all", label: "All styles" },
@@ -33,13 +38,28 @@ export default function Sidebar({
   ];
 
   return (
-    <aside className="mock-sidebar">
-      <div className="mock-sidebar-block">
-        <Mono muted>Workspace</Mono>
-        <div className="mock-brand-mark">
-          <span>H</span>
-          HANSOLL {collectionLabel}
+    <aside
+      className={`mock-sidebar${mobileOpen ? " mobile-open" : ""}`}
+      aria-hidden={onCloseMobile ? !mobileOpen : undefined}
+    >
+      <div className="mock-sidebar-block mock-sidebar-head">
+        <div>
+          <Mono muted>Workspace</Mono>
+          <div className="mock-brand-mark">
+            <span>H</span>
+            HANSOLL {collectionLabel}
+          </div>
         </div>
+        {onCloseMobile && (
+          <button
+            type="button"
+            className="mock-sidebar-close"
+            onClick={onCloseMobile}
+            aria-label="Close menu"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       <div className="mock-sidebar-block">

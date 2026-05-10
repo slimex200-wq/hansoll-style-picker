@@ -63,6 +63,22 @@ export const HANDOFF_SHELL_CSS = `
   gap: 10px;
   min-width: 0;
 }
+.mock-mobile-menu-button {
+  display: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid ${PALETTE.rule};
+  border-radius: 5px;
+  background: ${PALETTE.panel};
+  color: ${PALETTE.ink};
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mock-mobile-menu-button:hover {
+  background: ${PALETTE.peachBg};
+}
 .mock-dot-separator {
   width: 4px;
   height: 4px;
@@ -202,6 +218,36 @@ export const HANDOFF_SHELL_CSS = `
 .mock-sidebar-block {
   padding: 14px;
   border-bottom: 1px solid ${PALETTE.rule};
+}
+.mock-sidebar-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mock-sidebar-close {
+  display: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid ${PALETTE.rule};
+  border-radius: 5px;
+  background: ${PALETTE.panel};
+  color: ${PALETTE.inkSoft};
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mock-sidebar-close:hover {
+  background: ${PALETTE.peachBg};
+  color: ${PALETTE.peach};
+}
+.mock-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 16, 0.45);
+  z-index: 85;
 }
 .mock-sidebar-grow {
   flex: 1;

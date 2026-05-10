@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "../page";
+import { useIsMobile } from "@/lib/use-is-mobile";
+
+// Mock the mobile breakpoint hook so individual tests can opt into the
+// mobile layout without manipulating window.matchMedia each time.
+vi.mock("@/lib/use-is-mobile", () => ({
+  useIsMobile: vi.fn(() => false),
+}));
 
 // Mock api module
 vi.mock("@/lib/api", () => ({
@@ -56,6 +63,7 @@ beforeEach(() => {
   vi.mocked(fetchSelections).mockResolvedValue([]);
   vi.mocked(fetchMemos).mockResolvedValue([]);
   vi.mocked(fetchMemosByStyle).mockResolvedValue({ data: [], hasMore: false });
+  vi.mocked(useIsMobile).mockReturnValue(false);
 });
 
 describe("Home", () => {
@@ -353,6 +361,70 @@ describe("Home", () => {
     render(<Home />);
 
     expect(await screen.findByText("Alice Reviewer")).toBeInTheDocument();
+  });
+
+  it("forces gallery view and hides the list/gallery toggle on mobile", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+    vi.mocked(useIsMobile).mockReturnValue(true);
+
+    render(<Home />);
+
+    await waitFor(() => expect(document.querySelector(".mock-gallery")).toBeInTheDocument());
+    expect(document.querySelector(".mock-list")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "List view" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Gallery view" })).not.toBeInTheDocument();
+  });
+
+  it("hides the detail panel by default on mobile and opens it as a fullscreen overlay when a card is selected", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+    vi.mocked(useIsMobile).mockReturnValue(true);
+
+    render(<Home />);
+
+    // Initial render should show only the gallery — no detail panel mounted.
+    await waitFor(() => expect(document.querySelector(".mock-gallery")).toBeInTheDocument());
+    expect(document.querySelector(".mock-detail")).not.toBeInTheDocument();
+
+    const card = await screen.findByRole("button", { name: /View details for style STYLE-001/ });
+    await userEvent.click(card);
+
+    await waitFor(() =>
+      expect(document.querySelector(".mock-detail.fullscreen")).toBeInTheDocument()
+    );
+    expect(screen.getByRole("button", { name: "Close detail" })).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    await waitFor(() =>
+      expect(document.querySelector(".mock-detail")).not.toBeInTheDocument()
+    );
+  });
+
+  it("opens the sidebar drawer via the hamburger button on mobile", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+    vi.mocked(useIsMobile).mockReturnValue(true);
+
+    render(<Home />);
+
+    await waitFor(() => expect(document.querySelector(".mock-gallery")).toBeInTheDocument());
+    expect(document.querySelector(".mock-sidebar.mobile-open")).not.toBeInTheDocument();
+
+    const openBtn = document.querySelector<HTMLButtonElement>(".mock-mobile-menu-button");
+    expect(openBtn).not.toBeNull();
+    await userEvent.click(openBtn!);
+    await waitFor(() =>
+      expect(document.querySelector(".mock-sidebar.mobile-open")).toBeInTheDocument()
+    );
+
+    const closeBtn = document.querySelector<HTMLButtonElement>(".mock-sidebar-close");
+    expect(closeBtn).not.toBeNull();
+    await userEvent.click(closeBtn!);
+    await waitFor(() =>
+      expect(document.querySelector(".mock-sidebar.mobile-open")).not.toBeInTheDocument()
+    );
   });
 
   it("opens the garment image lightbox when the detail hero is clicked", async () => {

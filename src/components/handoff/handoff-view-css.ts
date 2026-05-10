@@ -254,7 +254,13 @@ export const HANDOFF_VIEW_CSS = `
 }
 .mock-detail-nav div {
   display: flex;
+  align-items: center;
   gap: 6px;
+}
+.mock-detail-nav-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .mock-detail-nav button {
   width: 26px;

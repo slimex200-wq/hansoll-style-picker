@@ -262,20 +262,64 @@ export const HANDOFF_MODAL_CSS = `
     min-height: 46px;
     grid-template-columns: 1fr;
     padding: 10px 12px;
+    gap: 8px;
+  }
+  .mock-top-left {
+    flex-wrap: wrap;
+  }
+  .mock-mobile-menu-button {
+    display: inline-flex;
   }
   .mock-actions {
     justify-content: flex-start;
-    overflow-x: auto;
+    flex-wrap: wrap;
   }
-  .mock-sidebar {
+  /* Compact reviewer block: avatar + logout only, name hidden on mobile. */
+  .mock-user-name {
     display: none;
   }
+  /* Upload control collapses to icon-only on mobile. */
+  .mock-upload {
+    padding: 0 8px;
+    gap: 0;
+    font-size: 0;
+    line-height: 0;
+  }
+  .mock-upload svg {
+    width: 16px;
+    height: 16px;
+  }
   .mock-body {
+    position: relative;
     display: block;
-    overflow: auto;
+    overflow: hidden;
+  }
+  .mock-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 80vw;
+    z-index: 90;
+    transform: translateX(-100%);
+    transition: transform 220ms ease-out;
+    border-right: 1px solid ${PALETTE.rule};
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    pointer-events: none;
+  }
+  .mock-sidebar.mobile-open {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+  .mock-sidebar-close {
+    display: inline-flex;
+  }
+  .mock-sidebar-backdrop {
+    display: block;
   }
   .mock-content {
-    min-height: 620px;
+    min-height: 100%;
   }
   .mock-content-header {
     align-items: flex-start;
@@ -283,19 +327,45 @@ export const HANDOFF_MODAL_CSS = `
   }
   .mock-review-note {
     text-align: left;
+    display: none;
   }
-  .mock-list {
-    overflow-x: auto;
+  .mock-gallery {
+    padding: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
   }
-  .mock-list-head,
-  .mock-list-row {
-    min-width: 980px;
+  .mock-status-bar-hints {
+    display: none;
   }
   .mock-detail {
+    position: fixed;
+    inset: 0;
     width: 100%;
     max-height: none;
+    z-index: 150;
     border-left: 0;
-    border-top: 1px solid ${PALETTE.rule};
+    border-top: 0;
+    background: ${PALETTE.panel};
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .mock-detail-close {
+    width: 32px;
+    height: 32px;
+    border: 1px solid ${PALETTE.rule};
+    border-radius: 5px;
+    background: ${PALETTE.panel};
+    color: ${PALETTE.inkSoft};
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 8px;
+  }
+  .mock-detail-close:hover {
+    background: ${PALETTE.peachBg};
+    color: ${PALETTE.peach};
   }
 }
 @media (max-width: 560px) {

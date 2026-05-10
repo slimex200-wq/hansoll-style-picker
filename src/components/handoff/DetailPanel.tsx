@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Memo, SelectionStatus, Style } from "@/lib/types";
 import { formatTimeAgo } from "@/lib/store";
@@ -21,6 +21,8 @@ export default function DetailPanel({
   onAddMemo,
   onLoadMoreMemos,
   onOpenLightbox,
+  fullscreen = false,
+  onCloseFullscreen,
 }: {
   style: Style;
   status: SelectionStatus | null;
@@ -34,6 +36,8 @@ export default function DetailPanel({
   onAddMemo?: (content: string) => Promise<void> | void;
   onLoadMoreMemos?: () => Promise<void> | void;
   onOpenLightbox?: () => void;
+  fullscreen?: boolean;
+  onCloseFullscreen?: () => void;
 }) {
   const [visualTab, setVisualTab] = useState<"garment" | "fabric" | "detail">("garment");
   const [memoDraft, setMemoDraft] = useState("");
@@ -71,7 +75,7 @@ export default function DetailPanel({
   };
 
   return (
-    <aside className="mock-detail">
+    <aside className={`mock-detail${fullscreen ? " fullscreen" : ""}`}>
       <div className="mock-detail-nav">
         <div>
           <button onClick={onPrev} aria-label="Previous style">
@@ -81,9 +85,21 @@ export default function DetailPanel({
             <ChevronRight size={14} />
           </button>
         </div>
-        <Mono muted>
-          {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-        </Mono>
+        <div className="mock-detail-nav-end">
+          <Mono muted>
+            {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          </Mono>
+          {onCloseFullscreen && (
+            <button
+              type="button"
+              className="mock-detail-close"
+              onClick={onCloseFullscreen}
+              aria-label="Close detail"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mock-detail-hero">

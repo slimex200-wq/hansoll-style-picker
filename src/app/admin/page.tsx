@@ -3,10 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
 import type { Memo, Selection, SelectionStatus, Style } from "@/lib/types";
 import { fetchMemos, fetchSelections, fetchStyles } from "@/lib/api";
 import HandoffStyles from "@/components/handoff/HandoffStyles";
 import Mono from "@/components/handoff/Mono";
+import { useIsMobile } from "@/lib/use-is-mobile";
 import {
   PALETTE,
   STATUS_META,
@@ -23,6 +25,22 @@ export default function AdminPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeDivision, setActiveDivision] = useState<string>("");
   const [filter, setFilter] = useState<AdminFilter>("all");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    if (!isMobile) setMobileSidebarOpen(false);
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    if (!(isMobile && mobileSidebarOpen)) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [isMobile, mobileSidebarOpen]);
 
   useEffect(() => {
     async function load() {
@@ -114,6 +132,16 @@ export default function AdminPage() {
         <div className="mock-shell">
           <header className="mock-topbar">
             <div className="mock-top-left">
+              {isMobile && (
+                <button
+                  type="button"
+                  className="mock-mobile-menu-button"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  aria-label="Open menu"
+                >
+                  <Menu size={16} />
+                </button>
+              )}
               <Mono muted>Admin</Mono>
               <span className="mock-dot-separator" />
               <Mono>{styles.length} styles</Mono>
@@ -131,13 +159,35 @@ export default function AdminPage() {
           </header>
 
           <div className="mock-body">
-            <aside className="mock-sidebar">
-              <div className="mock-sidebar-block">
-                <Mono muted>Workspace</Mono>
-                <div className="mock-brand-mark">
-                  <span>H</span>
-                  HANSOLL {collectionLabel}
+            {isMobile && mobileSidebarOpen && (
+              <div
+                className="mock-sidebar-backdrop"
+                onClick={() => setMobileSidebarOpen(false)}
+                aria-hidden="true"
+              />
+            )}
+            <aside
+              className={`mock-sidebar${isMobile && mobileSidebarOpen ? " mobile-open" : ""}`}
+              aria-hidden={isMobile ? !mobileSidebarOpen : undefined}
+            >
+              <div className="mock-sidebar-block mock-sidebar-head">
+                <div>
+                  <Mono muted>Workspace</Mono>
+                  <div className="mock-brand-mark">
+                    <span>H</span>
+                    HANSOLL {collectionLabel}
+                  </div>
                 </div>
+                {isMobile && (
+                  <button
+                    type="button"
+                    className="mock-sidebar-close"
+                    onClick={() => setMobileSidebarOpen(false)}
+                    aria-label="Close menu"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
               </div>
 
               <div className="mock-sidebar-block">
@@ -159,7 +209,10 @@ export default function AdminPage() {
                       <button
                         key={division}
                         className={division === currentDivision ? "active" : ""}
-                        onClick={() => setActiveDivision(division)}
+                        onClick={() => {
+                          setActiveDivision(division);
+                          setMobileSidebarOpen(false);
+                        }}
                       >
                         <span>{division}</span>
                         <Mono muted>{styles.filter((s) => s.division === division).length}</Mono>
@@ -180,7 +233,10 @@ export default function AdminPage() {
                     <button
                       key={item.key}
                       className={filter === item.key ? "active" : ""}
-                      onClick={() => setFilter(item.key)}
+                      onClick={() => {
+                        setFilter(item.key);
+                        setMobileSidebarOpen(false);
+                      }}
                     >
                       <span>{item.label}</span>
                       <Mono muted>{item.count}</Mono>
