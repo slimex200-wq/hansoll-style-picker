@@ -10,6 +10,8 @@ create table styles (
   designed_by text not null,
   image_url text not null,
   images text[] default '{}',
+  fabric_image_url text,
+  detail_image_url text,
   fabric_suggestion jsonb
 );
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import UploadTabs from "@/components/admin/UploadTabs";
+import UploadTabs, { type UploadTabId } from "@/components/admin/UploadTabs";
 import FileDropzone from "@/components/admin/FileDropzone";
 import ParsePreview from "@/components/admin/ParsePreview";
 import ToastContainer, { showToast } from "@/components/Toast";
@@ -12,7 +12,20 @@ import { PALETTE } from "@/components/handoff/palette";
 import type { FabricDetail } from "@/lib/fabric-details";
 import { parseFabricMappingWorkbook } from "@/lib/parsers/xlsx-parser";
 
-type ParseState = "idle" | "uploading" | "preview" | "importing" | "done" | "mappingDone";
+type ParseState =
+  | "idle"
+  | "uploading"
+  | "preview"
+  | "importing"
+  | "done"
+  | "mappingDone"
+  | "imageBatchDone";
+
+interface ImageBatchResult {
+  uploaded: Array<{ styleId: string; kind: string; url: string; filename: string }>;
+  skipped: Array<{ filename: string; reason: string }>;
+  errors: Array<{ filename: string; reason: string }>;
+}
 
 interface ParsedData {
   styles: Array<{
@@ -55,7 +68,7 @@ interface FabricMappingResult {
 }
 
 export default function UploadPage() {
-  const [activeTab, setActiveTab] = useState<"pdf" | "zip" | "excel">("pdf");
+  const [activeTab, setActiveTab] = useState<UploadTabId>("pdf");
   const [state, setState] = useState<ParseState>("idle");
   const [parsedData, setParsedData] = useState<ParsedData | null>(null);
   const [importResult, setImportResult] = useState<{
@@ -63,6 +76,7 @@ export default function UploadPage() {
     errors: string[];
   } | null>(null);
   const [mappingResult, setMappingResult] = useState<FabricMappingResult | null>(null);
+  const [imageBatchResult, setImageBatchResult] = useState<ImageBatchResult | null>(null);
 
   const handlePdfUpload = async (file: File) => {
     setState("uploading");
@@ -186,11 +200,46 @@ export default function UploadPage() {
     showToast(`Imported ${totalImported} styles`, "success");
   };
 
+  const handleImageZipUpload = async (file: File) => {
+    setState("uploading");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/import-style-images-batch", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+
+      setImageBatchResult({
+        uploaded: data.uploaded ?? [],
+        skipped: data.skipped ?? [],
+        errors: data.errors ?? [],
+      });
+      setState("imageBatchDone");
+      const uploadedCount = (data.uploaded ?? []).length;
+      const skippedCount = (data.skipped ?? []).length;
+      const errorCount = (data.errors ?? []).length;
+      const tone = uploadedCount > 0 ? "success" : "error";
+      showToast(
+        `Uploaded ${uploadedCount}, skipped ${skippedCount}, errors ${errorCount}`,
+        tone
+      );
+    } catch (e) {
+      showToast(`Image batch failed: ${(e as Error).message}`, "error");
+      setState("idle");
+    }
+  };
+
   const handleReset = () => {
     setState("idle");
     setParsedData(null);
     setImportResult(null);
     setMappingResult(null);
+    setImageBatchResult(null);
   };
 
   const processingDescription =
@@ -198,7 +247,9 @@ export default function UploadPage() {
       ? "Parsing styles from the PDF"
       : activeTab === "zip"
         ? "Reading parsed markdown and images from the ZIP"
-        : "Updating fabric details from the Excel mapping";
+        : activeTab === "excel"
+          ? "Updating fabric details from the Excel mapping"
+          : "Uploading fabric/detail images to storage";
 
   return (
     <>
@@ -245,13 +296,28 @@ export default function UploadPage() {
                   description="opendataloader-pdf output (markdown + images folder)"
                   onFile={handleZipUpload}
                 />
-              ) : (
+              ) : activeTab === "excel" ? (
                 <FileDropzone
                   accept=".xlsx"
                   label="Drop Excel here"
                   description='Workbook with "Style-Fabric Mapping" sheet (up to 25MB)'
                   onFile={handleExcelUpload}
                 />
+              ) : (
+                <>
+                  <FileDropzone
+                    accept=".zip"
+                    label="Drop image ZIP here"
+                    description='Files named "{styleId}_fabric.jpg" or "{styleId}_detail.jpg" (jpg/png/webp, up to 100MB)'
+                    onFile={handleImageZipUpload}
+                  />
+                  <div className="mt-3 text-[12px] text-[#888] leading-relaxed">
+                    Each image overrides the matching style&apos;s fabric or
+                    detail thumbnail. Files that don&apos;t match an existing
+                    style id are listed under &quot;skipped&quot; — no rows are
+                    silently dropped.
+                  </div>
+                </>
               )}
             </div>
           </>
@@ -310,6 +376,82 @@ export default function UploadPage() {
               >
                 View Summary
               </Link>
+            </div>
+          </div>
+        )}
+
+        {state === "imageBatchDone" && imageBatchResult && (
+          <div className="py-8">
+            <div className="bg-white border border-[#eee] rounded-xl p-5">
+              <div className="text-[18px] font-semibold text-[#333] mb-1">
+                Image Batch Complete
+              </div>
+              <div className="text-[14px] text-[#777]">
+                {imageBatchResult.uploaded.length} uploaded ·{" "}
+                {imageBatchResult.skipped.length} skipped ·{" "}
+                {imageBatchResult.errors.length} errors
+              </div>
+
+              {imageBatchResult.uploaded.length > 0 && (
+                <details className="mt-4 border border-[#eee] rounded-lg p-3" open>
+                  <summary className="text-[13px] font-semibold text-[#333] cursor-pointer">
+                    Uploaded ({imageBatchResult.uploaded.length})
+                  </summary>
+                  <ul className="mt-2 max-h-64 overflow-auto text-[12px] text-[#666]">
+                    {imageBatchResult.uploaded.map((item) => (
+                      <li key={`${item.styleId}-${item.kind}`} className="py-0.5">
+                        <b className="text-[#333]">{item.styleId}</b> · {item.kind} ·{" "}
+                        <span className="text-[#999]">{item.filename}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+
+              {imageBatchResult.skipped.length > 0 && (
+                <details className="mt-3 border border-yellow-200 bg-yellow-50 rounded-lg p-3">
+                  <summary className="text-[13px] font-semibold text-yellow-700 cursor-pointer">
+                    Skipped ({imageBatchResult.skipped.length})
+                  </summary>
+                  <ul className="mt-2 max-h-64 overflow-auto text-[12px] text-yellow-800">
+                    {imageBatchResult.skipped.map((item, i) => (
+                      <li key={`${item.filename}-${i}`} className="py-0.5">
+                        <b>{item.filename}</b>: {item.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+
+              {imageBatchResult.errors.length > 0 && (
+                <details className="mt-3 border border-red-200 bg-red-50 rounded-lg p-3" open>
+                  <summary className="text-[13px] font-semibold text-red-700 cursor-pointer">
+                    Errors ({imageBatchResult.errors.length})
+                  </summary>
+                  <ul className="mt-2 max-h-64 overflow-auto text-[12px] text-red-700">
+                    {imageBatchResult.errors.map((item, i) => (
+                      <li key={`${item.filename}-${i}`} className="py-0.5">
+                        <b>{item.filename}</b>: {item.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+
+              <div className="flex gap-3 mt-5">
+                <button
+                  onClick={handleReset}
+                  className="px-4 py-2.5 bg-[#E85D2A] text-white rounded-lg text-[14px] font-semibold hover:bg-[#d14e1f] transition-colors"
+                >
+                  Upload Another
+                </button>
+                <Link
+                  href="/admin"
+                  className="px-4 py-2.5 border border-[#ddd] text-[#666] rounded-lg text-[14px] hover:bg-[#f5f5f5] transition-colors"
+                >
+                  View Summary
+                </Link>
+              </div>
             </div>
           </div>
         )}
