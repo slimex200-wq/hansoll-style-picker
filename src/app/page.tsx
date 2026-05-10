@@ -13,6 +13,7 @@ import ListView from "@/components/handoff/ListView";
 import GalleryView from "@/components/handoff/GalleryView";
 import DetailPanel from "@/components/handoff/DetailPanel";
 import SummaryModal from "@/components/handoff/SummaryModal";
+import ImageLightbox from "@/components/handoff/ImageLightbox";
 import {
   PALETTE,
   getCollectionLabel,
@@ -49,6 +50,7 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -301,6 +303,9 @@ export default function Home() {
           target.tagName === "TEXTAREA" ||
           (target as HTMLElement).isContentEditable);
 
+      // Lightbox owns its own keyboard handling; let page-level shortcuts pause.
+      if (lightboxOpen) return;
+
       if (event.key === "Escape") {
         if (showSummary) {
           event.preventDefault();
@@ -358,7 +363,7 @@ export default function Home() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleSelect, moveSelection, selectedStyle, showSummary, userId, userName]);
+  }, [handleSelect, lightboxOpen, moveSelection, selectedStyle, showSummary, userId, userName]);
 
   const avatarInitials = useMemo(() => {
     if (!userName) return "HS";
@@ -537,6 +542,11 @@ export default function Home() {
                 hasMoreMemos={selectedHasMore}
                 onAddMemo={(content) => handleAddMemo(selectedStyle.id, content)}
                 onLoadMoreMemos={() => handleLoadMoreMemos(selectedStyle.id)}
+                onOpenLightbox={
+                  selectedStyle.image_url || selectedStyle.images?.length
+                    ? () => setLightboxOpen(true)
+                    : undefined
+                }
               />
             )}
           </div>
@@ -548,6 +558,12 @@ export default function Home() {
           collectionLabel={collectionLabel}
           getStatus={(style) => getStatusForStyle(style.id)}
           onClose={() => setShowSummary(false)}
+        />
+      )}
+      {lightboxOpen && selectedStyle && (
+        <ImageLightbox
+          style={selectedStyle}
+          onClose={() => setLightboxOpen(false)}
         />
       )}
       <ToastContainer />

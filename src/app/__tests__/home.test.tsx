@@ -354,4 +354,27 @@ describe("Home", () => {
 
     expect(await screen.findByText("Alice Reviewer")).toBeInTheDocument();
   });
+
+  it("opens the garment image lightbox when the detail hero is clicked", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+
+    render(<Home />);
+
+    const heroButton = await screen.findByRole("button", {
+      name: /Open STYLE-001 garment images/,
+    });
+    await userEvent.click(heroButton);
+
+    const dialog = await screen.findByRole("dialog", { name: /STYLE-001 garment images/ });
+    expect(dialog).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: /STYLE-001 garment images/ })
+      ).not.toBeInTheDocument()
+    );
+  });
 });

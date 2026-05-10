@@ -21,6 +21,7 @@ export default function DetailPanel({
   hasMoreMemos,
   onAddMemo,
   onLoadMoreMemos,
+  onOpenLightbox,
 }: {
   style: Style;
   status: SelectionStatus | null;
@@ -33,6 +34,7 @@ export default function DetailPanel({
   hasMoreMemos?: boolean;
   onAddMemo?: (content: string) => Promise<void> | void;
   onLoadMoreMemos?: () => Promise<void> | void;
+  onOpenLightbox?: () => void;
 }) {
   const [visualTab, setVisualTab] = useState<"garment" | "fabric" | "detail">("garment");
   const [memoDraft, setMemoDraft] = useState("");
@@ -86,7 +88,20 @@ export default function DetailPanel({
       </div>
 
       <div className="mock-detail-hero">
-        {visualTab === "garment" && <StyleVisual style={style} />}
+        {visualTab === "garment" && (
+          onOpenLightbox ? (
+            <button
+              type="button"
+              className="mock-detail-hero-button"
+              onClick={onOpenLightbox}
+              aria-label={`Open ${style.id} garment images`}
+            >
+              <StyleVisual style={style} />
+            </button>
+          ) : (
+            <StyleVisual style={style} />
+          )
+        )}
         {visualTab === "fabric" && <FabricTexture style={style} />}
         {visualTab === "detail" && (
           <div className="mock-detail-closeup">
