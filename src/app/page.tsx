@@ -440,6 +440,7 @@ export default function Home() {
                   selectedId={selectedStyle?.id ?? null}
                   onSelectStyle={setSelectedId}
                   onDecision={(style, status) => void handleSelect(style.id, status)}
+                  getMemoCount={(style) => styleMemos.get(style.id)?.memos.length ?? 0}
                 />
               )}
             </main>

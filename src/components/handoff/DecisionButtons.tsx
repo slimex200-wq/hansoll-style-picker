@@ -6,12 +6,16 @@ import { STATUS_META } from "./palette";
 export default function DecisionButtons({
   current,
   onSelect,
+  variant = "default",
 }: {
   current: SelectionStatus | null;
   onSelect: (status: SelectionStatus) => void;
+  variant?: "default" | "gallery";
 }) {
+  const className =
+    variant === "gallery" ? "mock-decision-buttons gallery" : "mock-decision-buttons";
   return (
-    <div className="mock-decision-buttons">
+    <div className={className}>
       {(Object.keys(STATUS_META) as SelectionStatus[]).map((status) => {
         const active = current === status;
         const meta = STATUS_META[status];
@@ -19,7 +23,11 @@ export default function DecisionButtons({
           <button
             key={status}
             className={active ? "active" : ""}
-            style={active ? { borderColor: meta.color, background: meta.bg, color: meta.color } : undefined}
+            style={
+              active
+                ? { borderColor: meta.color, background: meta.bg, color: meta.color }
+                : undefined
+            }
             onClick={() => onSelect(status)}
             aria-label={`Mark ${meta.label}`}
           >

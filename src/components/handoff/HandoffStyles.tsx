@@ -423,67 +423,108 @@ const HANDOFF_CSS = `
   gap: 4px;
 }
 .mock-decision-buttons button {
-  width: 28px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border: 1px solid ${PALETTE.rule};
   border-radius: 4px;
   background: ${PALETTE.panel};
   color: ${PALETTE.inkSoft};
   font-size: 10px;
   font-weight: 800;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
+}
+.mock-decision-buttons.gallery {
+  width: 100%;
+  gap: 4px;
+}
+.mock-decision-buttons.gallery button {
+  flex: 1;
+  width: auto;
+  height: auto;
+  padding: 5px 0;
 }
 .mock-gallery {
   flex: 1;
   overflow: auto;
-  padding: 20px;
+  padding: 16px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   align-content: start;
-  gap: 16px;
+  gap: 12px;
 }
 .mock-gallery-card {
   border: 1px solid ${PALETTE.rule};
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   background: ${PALETTE.panel};
   color: ${PALETTE.ink};
   text-align: left;
   cursor: pointer;
-  transition: box-shadow 200ms ease-out, border-color 200ms ease-out;
-}
-.mock-gallery-card:hover {
-  box-shadow: 0 6px 18px rgba(26, 24, 21, 0.08);
+  position: relative;
+  transition: border-color 100ms ease-out, box-shadow 100ms ease-out;
 }
 .mock-gallery-card.selected {
   border-color: ${PALETTE.peach};
   box-shadow: 0 0 0 3px ${PALETTE.peachBg};
 }
-.mock-gallery-body {
-  padding: 14px 14px 12px;
-  border-top: 1px solid ${PALETTE.ruleSoft};
-  display: grid;
-  gap: 8px;
+.mock-gallery-hero {
+  position: relative;
 }
-.mock-gallery-title, .mock-gallery-actions {
-  display: flex;
+.mock-gallery-hero .mock-visual {
+  aspect-ratio: 1 / 1;
+}
+.mock-gallery-status-pill {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: inline-flex;
   align-items: center;
+  gap: 5px;
+}
+.mock-gallery-memo-pill {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(26, 24, 21, 0.8);
+  color: #fff;
+  font-size: 10px;
+}
+.mock-gallery-body {
+  padding: 10px 12px;
+  border-top: 1px solid ${PALETTE.ruleSoft};
+}
+.mock-gallery-title {
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
 }
-.mock-gallery-title .mock-mono:first-child {
-  font-size: 12px;
+.mock-gallery-actions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .mock-gallery-body p {
-  min-height: 36px;
-  margin: 0;
+  margin: 4px 0 0;
   color: ${PALETTE.inkSoft};
-  font-size: 12px;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-size: 11px;
+  line-height: 1.45;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .mock-detail {
   width: 420px;
