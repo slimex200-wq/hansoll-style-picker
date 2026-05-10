@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Memo, Selection, SelectionStatus, Style } from "@/lib/types";
-import { fetchMemos, fetchMemosByStyle, fetchSelections, fetchStyles, insertMemo, upsertSelection } from "@/lib/api";
+import { deleteSelection, fetchMemos, fetchMemosByStyle, fetchSelections, fetchStyles, insertMemo, upsertSelection } from "@/lib/api";
 import { clearUserName, getUserId, getUserName, setUserName } from "@/lib/store";
 import NamePrompt from "@/components/NamePrompt";
 import ToastContainer, { showToast } from "@/components/Toast";
@@ -126,8 +126,27 @@ export default function Home() {
       if (!style) return;
       const key = `${styleId}:${userId}`;
       const prev = selections.get(key);
-      // Toggle off click on the same status is a no-op (DB has no nullable status).
-      if (prev?.status === status) return;
+
+      // Toggle off — same status re-click clears the selection via DELETE.
+      if (prev?.status === status) {
+        try {
+          setSelections((map) => {
+            const next = new Map(map);
+            next.delete(key);
+            return next;
+          });
+          await deleteSelection(styleId, userId);
+          showToast("Selection cleared", "success");
+        } catch {
+          setSelections((map) => {
+            const next = new Map(map);
+            if (prev) next.set(key, prev);
+            return next;
+          });
+          showToast("Failed to clear selection", "error");
+        }
+        return;
+      }
 
       try {
         setSelections((map) => {

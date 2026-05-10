@@ -48,6 +48,7 @@ create policy "styles_read" on styles for select using (true);
 create policy "selections_read" on selections for select using (true);
 create policy "selections_insert" on selections for insert with check (true);
 create policy "selections_update" on selections for update using (user_id = user_id);
+create policy "selections_delete" on selections for delete using (true);
 
 create policy "memos_read" on memos for select using (true);
 create policy "memos_insert" on memos for insert with check (true);
