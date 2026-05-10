@@ -21,15 +21,17 @@
 
 ## Color
 - **Approach:** Restrained — 1 accent + warm neutrals
-- **Background:** #FAF9F7 (warm off-white)
-- **Surface:** #FFFFFF
-- **Primary text:** #2C2C2C
-- **Muted text:** #9B9590 (warm gray)
-- **Accent:** #C45A2D (terracotta orange)
-- **Accent hover:** #A84B24
-- **Accent light:** #FFF6F1
-- **Border:** #E8E4E0 (warm)
-- **Semantic:** success #3D8B5E, warning #C4862D, error #C43D2D, info #2D6EC4
+- **Background:** #fbf8f3 (warm off-white)
+- **Surface:** #ffffff
+- **Primary text:** #1a1815
+- **Muted text:** #9a958c (warm gray)
+- **Accent:** #c96442 (terracotta peach)
+- **Accent hover:** #b15538
+- **Accent light:** #fae9e1 (peachBg)
+- **Border:** #ebe6dc (warm)
+- **Status — Sage:** #7a936f / sageBg #eef1ec (Pick)
+- **Status — Amber:** #b88a2c / amberBg #f6efdc (Hold)
+- **Status — Peach:** #c96442 / peachBg #fae9e1 (Skip)
 - **Dark mode:** Not implemented yet
 
 ## Spacing
@@ -56,3 +58,4 @@
 | 2026-03-27 | Conveyor belt onboarding | MI PDF 사진 활용, 컬렉션 맥락 전달 |
 | 2026-03-27 | Instrument Serif for display | Talbots 클래식 여성복 브랜드와 어울리는 serif |
 | 2026-03-27 | Terracotta accent #C45A2D | 기존 #E85D2A보다 디프해서 고급스럽고 눈 피로 감소 |
+| 2026-05-10 | Palette SoT unified to mockup handoff (peach #c96442, bg #fbf8f3) | Operations layout adopted from reference handoff; mockup palette became canonical |

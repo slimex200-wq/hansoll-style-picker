@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { PALETTE } from "./handoff/palette";
 
 const SUPABASE_STORAGE =
   "https://lflpwfgndgnxoydfvbms.supabase.co/storage/v1/object/public/style-images";
@@ -247,7 +248,7 @@ export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
               style={{
                 fontFamily: "'Instrument Serif', Georgia, serif",
                 fontWeight: 400,
-                color: "#2C2C2C",
+                color: PALETTE.ink,
                 marginBottom: 4,
                 letterSpacing: "-0.02em",
               }}
@@ -259,7 +260,7 @@ export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
               style={{
                 fontFamily: "'Instrument Serif', Georgia, serif",
                 fontStyle: "italic",
-                color: "#C45A2D",
+                color: PALETTE.peach,
                 marginBottom: 8,
               }}
             >
@@ -275,7 +276,7 @@ export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
               style={{
                 display: "flex",
                 justifyContent: "center",
-                borderBottom: "1px solid #E8E4E0",
+                borderBottom: `1px solid ${PALETTE.rule}`,
               }}
             >
               {[
@@ -284,7 +285,7 @@ export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
                 { n: stats?.collectionLabel ?? "--", l: "Collection" },
               ].map((s) => (
                 <div key={s.l} style={{ textAlign: "center" as const }}>
-                  <div className="onboarding-stat-num" style={{ fontWeight: 600, color: "#2C2C2C" }}>{s.n}</div>
+                  <div className="onboarding-stat-num" style={{ fontWeight: 600, color: PALETTE.ink }}>{s.n}</div>
                   <div
                     style={{
                       fontSize: 11,
@@ -309,7 +310,7 @@ export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
                 marginBottom: 20,
               }}
             >
-              <span style={{ flex: 1, height: 1, background: "#E8E4E0" }} />
+              <span style={{ flex: 1, height: 1, background: PALETTE.rule }} />
               <span
                 style={{
                   fontSize: 11,
@@ -320,7 +321,7 @@ export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
               >
                 Enter your name
               </span>
-              <span style={{ flex: 1, height: 1, background: "#E8E4E0" }} />
+              <span style={{ flex: 1, height: 1, background: PALETTE.rule }} />
             </div>
 
             <input
@@ -332,15 +333,15 @@ export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
               className="onboarding-input"
               style={{
                 width: "100%",
-                border: "1px solid #E8E4E0",
+                border: `1px solid ${PALETTE.rule}`,
                 borderRadius: 8,
-                color: "#2C2C2C",
-                background: "#FAF9F7",
+                color: PALETTE.ink,
+                background: PALETTE.bg,
                 outline: "none",
                 marginBottom: 12,
               }}
-              onFocus={(e) => (e.target.style.borderColor = "#C45A2D")}
-              onBlur={(e) => (e.target.style.borderColor = "#E8E4E0")}
+              onFocus={(e) => (e.target.style.borderColor = PALETTE.peach)}
+              onBlur={(e) => (e.target.style.borderColor = PALETTE.rule)}
             />
             <button
               type="submit"
@@ -350,7 +351,7 @@ export default function NamePrompt({ onSubmit, stats }: NamePromptProps) {
                 width: "100%",
                 border: "none",
                 borderRadius: 8,
-                background: name.trim() ? "#C45A2D" : "#C45A2D66",
+                background: name.trim() ? PALETTE.peach : `${PALETTE.peach}66`,
                 color: "white",
                 fontWeight: 500,
                 cursor: name.trim() ? "pointer" : "default",
