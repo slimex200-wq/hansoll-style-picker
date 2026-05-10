@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "../page";
 
@@ -50,24 +50,6 @@ const mockStyles = [
   },
 ];
 
-function getByTextContent(text: string) {
-  return screen.getByText((_, element) => {
-    const hasText = (node: Element | null) =>
-      node?.textContent?.replace(/\s+/g, " ").includes(text) ?? false;
-    return hasText(element) && Array.from(element?.children ?? []).every((child) => !hasText(child));
-  });
-}
-
-async function findByTextContent(text: string) {
-  return screen.findByText((_, element) => {
-    const hasText = (node: Element | null) =>
-      node?.textContent?.replace(/\s+/g, " ").includes(text) ?? false;
-    return hasText(element) && Array.from(element?.children ?? []).every((child) => !hasText(child));
-  });
-}
-
-const getDesktopDialog = () => within(screen.getAllByRole("dialog")[0]);
-
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(fetchStyles).mockResolvedValue(mockStyles);
@@ -87,14 +69,15 @@ describe("Home", () => {
     expect(screen.getByPlaceholderText("e.g. Sarah Kim")).toBeInTheDocument();
   });
 
-  it("shows style grid after name is set", async () => {
+  it("shows the handoff shell with the style id after name is set", async () => {
     vi.mocked(getUserId).mockReturnValue("user-123");
     vi.mocked(getUserName).mockReturnValue("Alice");
 
     render(<Home />);
 
-    expect(await screen.findByText("STYLE-001")).toBeInTheDocument();
-    expect(getByTextContent("0/1 reviewed")).toBeInTheDocument();
+    const matches = await screen.findAllByText("STYLE-001");
+    expect(matches.length).toBeGreaterThan(0);
+    expect(screen.getByText(/1 shown from 1 styles/)).toBeInTheDocument();
   });
 
   it("shows a persistent load error when the collection cannot load", async () => {
@@ -127,7 +110,7 @@ describe("Home", () => {
 
     render(<Home />);
 
-    expect(await screen.findByText("1 memo")).toBeInTheDocument();
+    expect(await screen.findByText("Already noted")).toBeInTheDocument();
     expect(fetchMemos).toHaveBeenCalledOnce();
     expect(fetchMemosByStyle).not.toHaveBeenCalled();
   });
@@ -145,19 +128,18 @@ describe("Home", () => {
     await waitFor(() => expect(setUserName).toHaveBeenCalledWith("Alice"));
   });
 
-  it("opens DetailDrawer when style card is clicked", async () => {
+  it("selects a style row and reveals the detail panel", async () => {
     vi.mocked(getUserId).mockReturnValue("user-123");
     vi.mocked(getUserName).mockReturnValue("Alice");
 
     render(<Home />);
 
-    const card = await screen.findByRole("button", { name: /View details for style STYLE-001/ });
-    await userEvent.click(card);
-
-    expect(screen.getAllByRole("dialog")[0]).toBeInTheDocument();
+    const rows = await screen.findAllByRole("button", { name: /View details for style STYLE-001/ });
+    expect(rows.length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "STYLE-001" })).toBeInTheDocument();
   });
 
-  it("handles selection via DetailDrawer", async () => {
+  it("handles selection via the detail panel decision stack", async () => {
     vi.mocked(getUserId).mockReturnValue("user-123");
     vi.mocked(getUserName).mockReturnValue("Alice");
     vi.mocked(upsertSelection).mockResolvedValue({
@@ -173,17 +155,17 @@ describe("Home", () => {
 
     render(<Home />);
 
-    const card = await screen.findByRole("button", { name: /View details for style STYLE-001/ });
-    await userEvent.click(card);
+    await screen.findByRole("heading", { name: "STYLE-001" });
 
-    await userEvent.click(getDesktopDialog().getByText("Shortlist"));
+    const pickButtons = await screen.findAllByRole("button", { name: "Mark Pick" });
+    await userEvent.click(pickButtons[pickButtons.length - 1]);
 
     await waitFor(() =>
       expect(upsertSelection).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "shortlist")
     );
   });
 
-  it("handles memo addition via DetailDrawer", async () => {
+  it("handles memo addition via the Send button", async () => {
     vi.mocked(getUserId).mockReturnValue("user-123");
     vi.mocked(getUserName).mockReturnValue("Alice");
     vi.mocked(insertMemo).mockResolvedValue({
@@ -198,30 +180,30 @@ describe("Home", () => {
 
     render(<Home />);
 
-    const card = await screen.findByRole("button", { name: /View details for style STYLE-001/ });
-    await userEvent.click(card);
+    await screen.findByRole("heading", { name: "STYLE-001" });
 
-    const dialog = getDesktopDialog();
-    const textarea = dialog.getByPlaceholderText("Add a memo...");
+    const textarea = screen.getByPlaceholderText("Add buyer or internal note...");
     fireEvent.change(textarea, { target: { value: "Nice fabric" } });
     expect(textarea).toHaveValue("Nice fabric");
-    await userEvent.click(dialog.getByText("Send"));
+
+    await userEvent.click(screen.getByRole("button", { name: "Send" }));
 
     await waitFor(() =>
       expect(insertMemo).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "Nice fabric")
     );
   });
 
-  it("shows Summary link", async () => {
+  it("links to the admin selection summary", async () => {
     vi.mocked(getUserId).mockReturnValue("user-123");
     vi.mocked(getUserName).mockReturnValue("Alice");
 
     render(<Home />);
 
-    expect(await screen.findByText("Summary")).toBeInTheDocument();
+    const summaryLink = await screen.findByRole("link", { name: "Selection summary" });
+    expect(summaryLink).toHaveAttribute("href", "/admin");
   });
 
-  it("updates reviewed count when selection exists", async () => {
+  it("updates reviewed count when a selection exists", async () => {
     vi.mocked(getUserId).mockReturnValue("user-123");
     vi.mocked(getUserName).mockReturnValue("Alice");
     vi.mocked(fetchSelections).mockResolvedValue([
@@ -239,6 +221,48 @@ describe("Home", () => {
 
     render(<Home />);
 
-    expect(await findByTextContent("1/1 reviewed")).toBeInTheDocument();
+    expect(await screen.findByText(/1 shown from 1 styles · 1\/1 reviewed/)).toBeInTheDocument();
+  });
+
+  it("triggers a selection via the keyboard shortcut", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+    vi.mocked(upsertSelection).mockResolvedValue({
+      id: "sel-1",
+      style_id: "STYLE-001",
+      collection: "SP27-TALBOTS-OUTLET",
+      user_id: "user-123",
+      user_name: "Alice",
+      status: "maybe",
+      created_at: "2026-03-25T10:00:00Z",
+      updated_at: "2026-03-25T10:00:00Z",
+    });
+
+    render(<Home />);
+
+    await screen.findByRole("heading", { name: "STYLE-001" });
+
+    fireEvent.keyDown(window, { key: "2" });
+
+    await waitFor(() =>
+      expect(upsertSelection).toHaveBeenCalledWith("STYLE-001", "SP27-TALBOTS-OUTLET", "user-123", "Alice", "maybe")
+    );
+  });
+
+  it("ignores the keyboard shortcut while typing in a textarea", async () => {
+    vi.mocked(getUserId).mockReturnValue("user-123");
+    vi.mocked(getUserName).mockReturnValue("Alice");
+
+    render(<Home />);
+
+    await screen.findByRole("heading", { name: "STYLE-001" });
+
+    const textarea = screen.getByPlaceholderText("Add buyer or internal note...");
+    textarea.focus();
+    fireEvent.keyDown(textarea, { key: "1" });
+
+    await waitFor(() => {
+      expect(upsertSelection).not.toHaveBeenCalled();
+    });
   });
 });
