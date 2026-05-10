@@ -151,15 +151,30 @@ export default function DetailPanel({
 
       <div className="mock-thumb-tabs">
         {(["garment", "fabric", "detail"] as const).map((tab) => {
-          const isEmpty = tab === "fabric" ? !style.fabric_image_url : tab === "detail" ? !style.detail_image_url : false;
+          const thumbSrc =
+            tab === "garment"
+              ? style.image_url
+              : tab === "fabric"
+                ? style.fabric_image_url ?? null
+                : style.detail_image_url ?? null;
+          const isEmpty = tab !== "garment" && !thumbSrc;
           return (
             <button
               key={tab}
               className={visualTab === tab ? "active" : ""}
               data-empty={isEmpty || undefined}
               onClick={() => setVisualTab(tab)}
+              aria-label={`Show ${tab} view`}
             >
-              <span>{tab}</span>
+              <span className="mock-thumb-tabs-thumb" aria-hidden="true">
+                {thumbSrc ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={thumbSrc} alt="" className="mock-thumb-tabs-img" />
+                ) : (
+                  <span className="mock-thumb-tabs-placeholder">—</span>
+                )}
+              </span>
+              <span className="mock-thumb-tabs-label">{tab}</span>
             </button>
           );
         })}
