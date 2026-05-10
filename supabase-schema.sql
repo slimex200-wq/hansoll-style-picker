@@ -2,6 +2,7 @@
 create table styles (
   id text primary key,
   collection text not null,
+  division text,
   fabric_no text default '',
   contents text not null,
   construction text not null,
@@ -49,7 +50,10 @@ create policy "styles_read" on styles for select using (true);
 
 create policy "selections_read" on selections for select using (true);
 create policy "selections_insert" on selections for insert with check (true);
-create policy "selections_update" on selections for update using (user_id = user_id);
+-- Anon clients send user_id from localStorage (no auth context), so server-side
+-- ownership filtering isn't enforceable here. Application logic gates updates by
+-- the local user_id. The previous (user_id = user_id) tautology was a no-op.
+create policy "selections_update" on selections for update using (true);
 create policy "selections_delete" on selections for delete using (true);
 
 create policy "memos_read" on memos for select using (true);
