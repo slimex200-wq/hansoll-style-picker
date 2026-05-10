@@ -13,7 +13,6 @@ export default function Sidebar({
   setFilter,
   collectionLabel,
   onSummary,
-  showShortcuts = true,
 }: {
   divisions: string[];
   activeDivision: string;
@@ -24,7 +23,6 @@ export default function Sidebar({
   setFilter: (filter: FilterKey) => void;
   collectionLabel: string;
   onSummary?: () => void;
-  showShortcuts?: boolean;
 }) {
   const filters: Array<{ key: FilterKey; label: string }> = [
     { key: "all", label: "All styles" },
@@ -103,14 +101,6 @@ export default function Sidebar({
             <span>Selection summary</span>
             <span className="mock-kbd">S</span>
           </button>
-        )}
-        {showShortcuts && (
-          <div>
-            <Mono muted>Shortcuts</Mono>
-            <span className="mock-kbd">1</span>
-            <span className="mock-kbd">2</span>
-            <span className="mock-kbd">3</span>
-          </div>
         )}
       </div>
     </aside>

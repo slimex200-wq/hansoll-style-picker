@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import type { SelectionStatus, Style } from "@/lib/types";
 import Mono from "./Mono";
@@ -19,6 +19,16 @@ export default function SummaryModal({
   getStatus: (style: Style) => SelectionStatus | null;
   onClose: () => void;
 }) {
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Capture focus origin on mount; restore on unmount.
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, []);
+
   // ESC closes the modal even if focus is inside the dialog body.
   useEffect(() => {
     function onKey(event: KeyboardEvent) {

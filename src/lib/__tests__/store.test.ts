@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { getUserId, getUserName, setUserName, formatTimeAgo, STATUS_CONFIG } from "../store";
+import { getUserId, getUserName, setUserName, formatTimeAgo } from "../store";
 
 describe("store", () => {
   beforeEach(() => {
@@ -74,22 +74,4 @@ describe("store", () => {
     });
   });
 
-  describe("STATUS_CONFIG", () => {
-    it("has all three statuses", () => {
-      expect(STATUS_CONFIG).toHaveProperty("shortlist");
-      expect(STATUS_CONFIG).toHaveProperty("maybe");
-      expect(STATUS_CONFIG).toHaveProperty("pass");
-    });
-
-    it("each status has required fields", () => {
-      for (const key of ["shortlist", "maybe", "pass"] as const) {
-        const config = STATUS_CONFIG[key];
-        expect(config.label).toBeTruthy();
-        expect(config.bg).toBeTruthy();
-        expect(config.text).toBeTruthy();
-        expect(config.border).toBeTruthy();
-        expect(config.activeBg).toBeTruthy();
-      }
-    });
-  });
 });

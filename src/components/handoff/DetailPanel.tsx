@@ -6,7 +6,6 @@ import type { Memo, SelectionStatus, Style } from "@/lib/types";
 import { formatTimeAgo } from "@/lib/store";
 import Mono from "./Mono";
 import StyleVisual from "./StyleVisual";
-import FabricTexture from "./FabricTexture";
 import { STATUS_META, formatDisplayPrice, getFabricRows, joinParts } from "./palette";
 
 export default function DetailPanel({
@@ -102,22 +101,52 @@ export default function DetailPanel({
             <StyleVisual style={style} />
           )
         )}
-        {visualTab === "fabric" && <FabricTexture style={style} />}
+        {visualTab === "fabric" && (
+          style.fabric_image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={style.fabric_image_url}
+              alt={`${style.id} fabric closeup`}
+              className="mock-detail-hero-img"
+            />
+          ) : (
+            <div className="mock-detail-empty">
+              <Mono muted>Fabric closeup — coming soon</Mono>
+              <div style={{ marginTop: 4 }}><Mono muted>Upload not yet supported in this preview</Mono></div>
+            </div>
+          )
+        )}
         {visualTab === "detail" && (
-          <div className="mock-detail-closeup">
-            <FabricTexture style={style} />
-            <div />
-            <span>neckline / stitch detail</span>
-          </div>
+          style.detail_image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={style.detail_image_url}
+              alt={`${style.id} detail shot`}
+              className="mock-detail-hero-img"
+            />
+          ) : (
+            <div className="mock-detail-empty">
+              <Mono muted>Detail shot — coming soon</Mono>
+              <div style={{ marginTop: 4 }}><Mono muted>Upload not yet supported in this preview</Mono></div>
+            </div>
+          )
         )}
       </div>
 
       <div className="mock-thumb-tabs">
-        {(["garment", "fabric", "detail"] as const).map((tab) => (
-          <button key={tab} className={visualTab === tab ? "active" : ""} onClick={() => setVisualTab(tab)}>
-            <span>{tab}</span>
-          </button>
-        ))}
+        {(["garment", "fabric", "detail"] as const).map((tab) => {
+          const isEmpty = tab === "fabric" ? !style.fabric_image_url : tab === "detail" ? !style.detail_image_url : false;
+          return (
+            <button
+              key={tab}
+              className={visualTab === tab ? "active" : ""}
+              data-empty={isEmpty || undefined}
+              onClick={() => setVisualTab(tab)}
+            >
+              <span>{tab}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="mock-detail-scroll">
@@ -226,14 +255,14 @@ export default function DetailPanel({
                 value={memoDraft}
                 onChange={(event) => setMemoDraft(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Enter" && !event.shiftKey) {
+                  if (event.key === "Enter" && (event.metaKey || event.ctrlKey) && !sending) {
                     event.preventDefault();
                     void handleSend();
                   }
                 }}
               />
               <div className="mock-memo-form-actions">
-                <Mono muted>Enter to send / Shift+Enter for newline</Mono>
+                <Mono muted>⌘+Enter to send</Mono>
                 <button
                   type="button"
                   onClick={handleSend}

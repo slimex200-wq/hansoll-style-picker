@@ -147,11 +147,11 @@ export const HANDOFF_VIEW_CSS = `
 .mock-gallery {
   flex: 1;
   overflow: auto;
-  padding: 16px;
+  padding: 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   align-content: start;
-  gap: 12px;
+  gap: 16px;
 }
 .mock-gallery-card {
   border: 1px solid ${PALETTE.rule};
@@ -173,6 +173,9 @@ export const HANDOFF_VIEW_CSS = `
 }
 .mock-gallery-hero .mock-visual {
   aspect-ratio: 1 / 1;
+}
+.mock-gallery-hero .mock-visual-img {
+  object-fit: cover;
 }
 .mock-gallery-status-pill {
   position: absolute;
@@ -200,7 +203,7 @@ export const HANDOFF_VIEW_CSS = `
   font-size: 10px;
 }
 .mock-gallery-body {
-  padding: 10px 12px;
+  padding: 14px 14px 12px;
   border-top: 1px solid ${PALETTE.ruleSoft};
 }
 .mock-gallery-title {
@@ -209,20 +212,27 @@ export const HANDOFF_VIEW_CSS = `
   justify-content: space-between;
   gap: 8px;
 }
+.mock-gallery-title .mock-mono:first-child {
+  font-size: 12px;
+}
 .mock-gallery-actions {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .mock-gallery-body p {
-  margin: 4px 0 0;
+  margin: 6px 0 0;
   color: ${PALETTE.inkSoft};
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.5;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.mock-decision-buttons.gallery button {
+  padding: 7px 0;
+  font-size: 11px;
 }
 .mock-detail {
   width: 420px;
@@ -267,41 +277,19 @@ export const HANDOFF_VIEW_CSS = `
   height: 100%;
   aspect-ratio: auto;
 }
-.mock-fabric-texture {
+.mock-detail-hero-img {
+  display: block;
   width: 100%;
   height: 100%;
-  box-shadow: inset 0 0 70px rgba(26,24,21,.2);
+  object-fit: contain;
 }
-.mock-detail-closeup {
-  position: relative;
+.mock-detail-empty {
   width: 100%;
   height: 100%;
-  overflow: hidden;
-}
-.mock-detail-closeup .mock-fabric-texture {
-  position: absolute;
-  inset: 0;
-  transform: scale(1.05);
-}
-.mock-detail-closeup div:nth-child(2) {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 88px;
-  height: 24px;
-  border-top: 1px solid rgba(26,24,21,.35);
-  border-bottom: 1px solid rgba(26,24,21,.25);
-  background: rgba(255,255,255,.2);
-}
-.mock-detail-closeup span {
-  position: absolute;
-  left: 14px;
-  bottom: 12px;
-  padding: 5px 8px;
-  border-radius: 999px;
-  background: rgba(26,24,21,.72);
-  color: #fff;
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${PALETTE.bg};
 }
 .mock-thumb-tabs {
   padding: 8px 14px;
@@ -327,6 +315,9 @@ export const HANDOFF_VIEW_CSS = `
   border-color: ${PALETTE.ink};
   color: ${PALETTE.ink};
   box-shadow: 0 0 0 2px ${PALETTE.peachBg};
+}
+.mock-thumb-tabs button[data-empty] {
+  opacity: 0.55;
 }
 .mock-detail-scroll {
   flex: 1;

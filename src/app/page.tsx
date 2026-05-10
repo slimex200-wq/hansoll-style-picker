@@ -261,10 +261,9 @@ export default function Home() {
     return (
       visibleStyles.find((style) => style.id === selectedId) ??
       visibleStyles[0] ??
-      styles[0] ??
       null
     );
-  }, [selectedId, styles, visibleStyles]);
+  }, [selectedId, visibleStyles]);
 
   const selectedIndex = selectedStyle ? visibleStyles.findIndex((style) => style.id === selectedStyle.id) : -1;
   const selectedStatus = selectedStyle ? getStatusForStyle(selectedStyle.id) : null;
@@ -369,7 +368,7 @@ export default function Home() {
     if (!userName) return "HS";
     const trimmed = userName.trim();
     if (!trimmed) return "HS";
-    return trimmed.slice(0, 2).toUpperCase();
+    return Array.from(trimmed).slice(0, 2).join("").toUpperCase();
   }, [userName]);
 
   // Pre-render checks (kept outside the shell so SSR/hydration is stable).

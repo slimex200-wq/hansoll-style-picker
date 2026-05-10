@@ -31,7 +31,7 @@ export default function DecisionButtons({
             onClick={() => onSelect(status)}
             aria-label={`Mark ${meta.label}`}
           >
-            {meta.label.slice(0, 2)}
+            {variant === "gallery" ? meta.label : meta.label.slice(0, 2)}
           </button>
         );
       })}

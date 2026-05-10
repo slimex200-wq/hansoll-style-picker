@@ -1,7 +1,8 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { Style } from "@/lib/types";
 
@@ -23,6 +24,15 @@ export default function ImageLightbox({
   const images = getImagesForStyle(style);
   const total = images.length;
   const [index, setIndex] = useState(() => Math.min(Math.max(initialIndex, 0), Math.max(total - 1, 0)));
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Capture focus origin on mount; restore on unmount.
+  useEffect(() => {
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, []);
 
   const goPrev = useCallback(() => {
     if (total <= 1) return;
@@ -74,18 +84,6 @@ export default function ImageLightbox({
       >
         {style.id} &middot; {index + 1} / {total}
       </div>
-      <button
-        type="button"
-        className="mock-image-lightbox-close"
-        aria-label="Close lightbox"
-        onClick={(event) => {
-          event.stopPropagation();
-          onClose();
-        }}
-      >
-        <X size={16} />
-      </button>
-
       <div
         className="mock-image-lightbox-stage"
         role="dialog"
@@ -104,16 +102,23 @@ export default function ImageLightbox({
           </button>
         )}
         <div className="mock-image-lightbox-image-wrap">
-          <Image
+          <img
             key={currentSrc}
             src={currentSrc}
             alt={`${style.id} image ${index + 1}`}
-            fill
-            unoptimized
-            sizes="90vw"
-            style={{ objectFit: "contain" }}
-            priority
+            className="mock-image-lightbox-image"
           />
+          <button
+            type="button"
+            className="mock-image-lightbox-close"
+            aria-label="Close lightbox"
+            onClick={(event) => {
+              event.stopPropagation();
+              onClose();
+            }}
+          >
+            <X size={16} />
+          </button>
         </div>
         {total > 1 && (
           <button

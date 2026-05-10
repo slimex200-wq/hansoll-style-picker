@@ -1,5 +1,3 @@
-import type { SelectionStatus } from "./types";
-
 const USER_ID_KEY = "hansoll-user-id";
 const USER_NAME_KEY = "hansoll-user-name";
 
@@ -36,29 +34,3 @@ export function formatTimeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-export const STATUS_CONFIG: Record<
-  SelectionStatus,
-  { label: string; bg: string; text: string; border: string; activeBg: string }
-> = {
-  shortlist: {
-    label: "Shortlist",
-    bg: "bg-[#E8F5E9]",
-    text: "text-[#2E7D32]",
-    border: "border-[#3D8B5E]",
-    activeBg: "bg-[#E8F5E9] text-[#2E7D32]",
-  },
-  maybe: {
-    label: "Maybe",
-    bg: "bg-[#FFF8E1]",
-    text: "text-[#F57F17]",
-    border: "border-[#C4862D]",
-    activeBg: "bg-[#FFF8E1] text-[#F57F17]",
-  },
-  pass: {
-    label: "Pass",
-    bg: "bg-[#F5F5F5]",
-    text: "text-[#9B9590]",
-    border: "border-[#9B9590]",
-    activeBg: "bg-[#F5F5F5] text-[#9B9590]",
-  },
-};
