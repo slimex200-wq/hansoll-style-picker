@@ -47,7 +47,16 @@ export default function AdminPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [s, sel, m] = await Promise.all([fetchStyles(), fetchSelections(), fetchMemos()]);
+        // ?collection=... scopes the admin view to one season; omit to see all.
+        const param = typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("collection")
+          : null;
+        const collection = param && param.trim() ? param.trim() : undefined;
+        const [s, sel, m] = await Promise.all([
+          fetchStyles(collection),
+          fetchSelections(collection),
+          fetchMemos(collection),
+        ]);
         setStyles(s);
         setSelections(sel);
         setMemos(m);
