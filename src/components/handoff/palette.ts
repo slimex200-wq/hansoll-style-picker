@@ -94,3 +94,30 @@ export function getCollectionLabel(styles: Style[]): string {
   const match = raw.match(/^(SP|SU|FA|FW|HO|SS)(\d{2})/i);
   return match ? `${match[1].toUpperCase()}'${match[2]}` : raw;
 }
+
+const SEASON_ORDER: Record<string, number> = {
+  SP: 0,
+  SS: 1,
+  SU: 2,
+  FA: 3,
+  FW: 4,
+  HO: 5,
+};
+
+// Higher rank = more recent. Used to pick a default when no ?collection=
+// query is set. Format expected: <SEASON><YY>... e.g. SU27-TALBOTS-OUTLET
+// or SP'27 TALBOTS OUTLET.
+export function rankCollection(collection: string): number {
+  const match = collection.match(/^(SP|SU|FA|FW|HO|SS)\D?(\d{2})/i);
+  if (!match) return -1;
+  const season = match[1].toUpperCase();
+  const year = parseInt(match[2], 10);
+  return year * 10 + (SEASON_ORDER[season] ?? 0);
+}
+
+export function pickLatestCollection(collections: string[]): string | null {
+  const ranked = collections
+    .map((c) => ({ c, rank: rankCollection(c) }))
+    .sort((a, b) => b.rank - a.rank);
+  return ranked[0]?.c ?? null;
+}
