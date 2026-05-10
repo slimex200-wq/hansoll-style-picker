@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import type { SelectionStatus, Style } from "@/lib/types";
 import Mono from "./Mono";
 import StatusDot from "./StatusDot";
 import StyleVisual from "./StyleVisual";
 import { PALETTE, getFabricLabel } from "./palette";
+
+type SummaryFilter = "all" | "unreviewed" | SelectionStatus;
 
 export default function SummaryModal({
   styles,
@@ -41,6 +43,8 @@ export default function SummaryModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const [filter, setFilter] = useState<SummaryFilter>("all");
+
   let unreviewed = 0;
   let pick = 0;
   let hold = 0;
@@ -60,6 +64,20 @@ export default function SummaryModal({
     { label: "Hold", value: String(hold), color: PALETTE.amber },
     { label: "Skip", value: String(skip), color: PALETTE.peach },
   ];
+
+  const filterChips: Array<{ key: SummaryFilter; label: string; count: number }> = [
+    { key: "all", label: "All", count: styles.length },
+    { key: "shortlist", label: "Pick", count: pick },
+    { key: "maybe", label: "Hold", count: hold },
+    { key: "pass", label: "Skip", count: skip },
+    { key: "unreviewed", label: "Unreviewed", count: unreviewed },
+  ];
+
+  const visibleStyles = useMemo(() => {
+    if (filter === "all") return styles;
+    if (filter === "unreviewed") return styles.filter((s) => !getStatus(s));
+    return styles.filter((s) => getStatus(s) === filter);
+  }, [filter, getStatus, styles]);
 
   return (
     <div
@@ -105,6 +123,25 @@ export default function SummaryModal({
           ))}
         </div>
 
+        <div className="mock-summary-filters" role="tablist" aria-label="Filter styles by decision">
+          {filterChips.map((chip) => {
+            const active = filter === chip.key;
+            return (
+              <button
+                key={chip.key}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                className={active ? "mock-summary-filter active" : "mock-summary-filter"}
+                onClick={() => setFilter(chip.key)}
+              >
+                <span>{chip.label}</span>
+                <Mono muted>{chip.count}</Mono>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="mock-summary-table">
           <div className="mock-summary-row mock-summary-row-head">
             <Mono muted>#</Mono>
@@ -114,16 +151,22 @@ export default function SummaryModal({
             <Mono muted>Weight</Mono>
             <Mono muted>Status</Mono>
           </div>
-          {styles.map((style, index) => (
-            <div key={style.id} className="mock-summary-row">
-              <Mono muted>{String(index + 1).padStart(2, "0")}</Mono>
-              <StyleVisual style={style} className="thumb" />
-              <Mono>{style.id}</Mono>
-              <span className="mock-truncate">{getFabricLabel(style)}</span>
-              <Mono muted>{style.weight || "-"}</Mono>
-              <StatusDot status={getStatus(style)} />
+          {visibleStyles.length === 0 ? (
+            <div className="mock-summary-empty">
+              <Mono muted>No styles match this filter.</Mono>
             </div>
-          ))}
+          ) : (
+            visibleStyles.map((style, index) => (
+              <div key={style.id} className="mock-summary-row">
+                <Mono muted>{String(index + 1).padStart(2, "0")}</Mono>
+                <StyleVisual style={style} className="thumb" />
+                <Mono>{style.id}</Mono>
+                <span className="mock-truncate">{getFabricLabel(style)}</span>
+                <Mono muted>{style.weight || "-"}</Mono>
+                <StatusDot status={getStatus(style)} />
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
