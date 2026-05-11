@@ -20,8 +20,14 @@ const FIELD_RE = {
   designed_by: /\|DESIGNED BY\|([^|\n]+)\|/,
 };
 
-// Collection patterns
+// Collection patterns. More specific patterns must come first because the
+// last-position match wins (so a pattern matching the cover page should also
+// be the most specific).
 const COLLECTION_PATTERNS: Array<{ pattern: RegExp; collection: string }> = [
+  // SUM'27 — pdfjs sometimes joins "T BY TALBOTS" with underscores instead of spaces.
+  { pattern: /SUM['\s]*27[\s_]+T[\s_]+BY[\s_]+TALBOTS/i, collection: "SU27-T-BY-TALBOTS" },
+  { pattern: /SUM['\s]*27[\s_]+TALBOTS/i, collection: "SU27-TALBOTS-OUTLET" },
+  // SP'27
   { pattern: /For\s+T\s+by\s+Talbots/i, collection: "T-BY-TALBOTS" },
   { pattern: /T\s+by\s+Talbots/i, collection: "T-BY-TALBOTS" },
   { pattern: /SP.*27.*TXT.*TALBOTS\s+OUTLET/i, collection: "SP27-TALBOTS-OUTLET" },
@@ -98,10 +104,10 @@ export function parseMarkdownStyles(
   markdown: string,
   options: ParseOptions = {}
 ): ParseResult {
-  const {
-    defaultCollection = "SP27-TALBOTS-OUTLET",
-    defaultDivision = "Knit Top",
-  } = options;
+  // Use ?? so an explicit `null` from formData.get(...) also falls back to the
+  // sensible default (destructure defaults only fire on `undefined`).
+  const defaultCollection = options.defaultCollection ?? "SP27-TALBOTS-OUTLET";
+  const defaultDivision = options.defaultDivision ?? "Knit Top";
 
   const styles: ParsedStyle[] = [];
   const errors: string[] = [];
