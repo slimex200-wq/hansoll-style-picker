@@ -71,15 +71,10 @@ export default function GalleryView({
                   {memoCount} memo{memoCount > 1 ? "s" : ""}
                 </span>
               )}
-            </div>
-            <div className="mock-gallery-body">
-              <div className="mock-gallery-title">
-                <Mono>{style.id}</Mono>
-                <Mono muted>{formatDisplayPrice(detail?.priceYd) ?? style.weight}</Mono>
-              </div>
-              <p>{getFabricLabel(style)}</p>
+              {/* Hover-revealed Pick/Hold/Skip overlay — keeps the card chrome
+                  compact and only surfaces actions when the user shows intent. */}
               <div
-                className="mock-gallery-actions"
+                className="mock-gallery-actions overlay"
                 onClick={(event) => event.stopPropagation()}
               >
                 <DecisionButtons
@@ -88,6 +83,13 @@ export default function GalleryView({
                   variant="gallery"
                 />
               </div>
+            </div>
+            <div className="mock-gallery-body">
+              <div className="mock-gallery-title">
+                <Mono>{style.id}</Mono>
+                <Mono muted>{formatDisplayPrice(detail?.priceYd) ?? style.weight}</Mono>
+              </div>
+              <p>{getFabricLabel(style)}</p>
             </div>
           </div>
         );

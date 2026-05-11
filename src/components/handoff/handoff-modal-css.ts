@@ -383,6 +383,11 @@ export const HANDOFF_MODAL_CSS = `
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 12px;
   }
+  /* Tap-to-open-drawer is the mobile flow; the desktop hover overlay would
+     never surface naturally but might briefly flash on .selected — kill it. */
+  .mock-gallery-actions.overlay {
+    display: none;
+  }
   .mock-status-bar-hints {
     display: none;
   }
