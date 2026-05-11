@@ -10,8 +10,10 @@ export interface PageImage {
   height: number;
 }
 
+// jsdelivr mirrors npm 1:1 with pinned versions; cdnjs lags behind for pdfjs
+// (5.5.207 returned 404), so pin the worker URL to the same package version.
 const WORKER_URL =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.5.207/pdf.worker.min.mjs";
+  "https://cdn.jsdelivr.net/npm/pdfjs-dist@5.5.207/build/pdf.worker.min.mjs";
 
 const RENDER_SCALE = 2;
 const JPEG_QUALITY = 0.85;
