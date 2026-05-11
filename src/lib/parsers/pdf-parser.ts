@@ -107,26 +107,36 @@ export function reconstructTables(text: string): string {
 
   const blocks: string[] = [];
 
+  const findLabels = (haystack: string, needles: string[]): LabelMatch[] =>
+    needles
+      .map((field) => {
+        const match = new RegExp(labelPattern(field), "i").exec(haystack);
+        return match
+          ? { field, start: match.index, end: match.index + match[0].length }
+          : null;
+      })
+      .filter((label): label is LabelMatch => Boolean(label));
+
   for (let i = 0; i < starts.length; i++) {
     const start = starts[i];
     const end = starts[i + 1] ?? text.length;
+
+    // Horizontal layout (e.g., SU'27 PDFs) places all 7 column headers in a row,
+    // then the value row, then "COMMENTS:". 2-space gaps separate columns; the
+    // collapsed-whitespace segment below loses those boundaries, so try the
+    // horizontal parser on the raw slice first.
+    const rawSegment = text.slice(start, end).trim();
+    const rawLabels = findLabels(rawSegment, fields);
+    const rawStopLabels = findLabels(rawSegment, stopFields);
+    const horizontalRows = parseHorizontalRow(rawSegment, rawLabels, rawStopLabels, fields);
+    if (horizontalRows) {
+      blocks.push(horizontalRows.join("\n"));
+      continue;
+    }
+
     const segment = text.slice(start, end).replace(/\s+/g, " ").trim();
-    const labels = fields
-      .map((field) => {
-        const match = new RegExp(labelPattern(field), "i").exec(segment);
-        return match
-          ? { field, start: match.index, end: match.index + match[0].length }
-          : null;
-      })
-      .filter((label): label is { field: string; start: number; end: number } => Boolean(label));
-    const stopLabels = stopFields
-      .map((field) => {
-        const match = new RegExp(labelPattern(field), "i").exec(segment);
-        return match
-          ? { field, start: match.index, end: match.index + match[0].length }
-          : null;
-      })
-      .filter((label): label is { field: string; start: number; end: number } => Boolean(label));
+    const labels = findLabels(segment, fields);
+    const stopLabels = findLabels(segment, stopFields);
     const allLabels = [...labels, ...stopLabels];
 
     const rows = fields.map((field) => {
@@ -156,6 +166,57 @@ export function reconstructTables(text: string): string {
   }
 
   return `${text}\n\n${blocks.join("\n\n")}`;
+}
+
+interface LabelMatch {
+  field: string;
+  start: number;
+  end: number;
+}
+
+function parseHorizontalRow(
+  segment: string,
+  labels: LabelMatch[],
+  stopLabels: LabelMatch[],
+  fields: string[]
+): string[] | null {
+  if (labels.length !== fields.length) return null;
+  const sorted = [...labels].sort((a, b) => a.start - b.start);
+  // Labels must appear in the expected order with only whitespace between them.
+  for (let i = 0; i < fields.length; i++) {
+    if (sorted[i].field !== fields[i]) return null;
+  }
+  for (let i = 0; i < sorted.length - 1; i++) {
+    if (segment.slice(sorted[i].end, sorted[i + 1].start).trim().length > 0) {
+      return null;
+    }
+  }
+
+  const lastLabel = sorted[sorted.length - 1];
+  const firstStop = [...stopLabels]
+    .filter((s) => s.start > lastLabel.end)
+    .sort((a, b) => a.start - b.start)[0];
+  const valuesText = segment
+    .slice(lastLabel.end, firstStop?.start ?? segment.length)
+    .trim();
+
+  const values = valuesText
+    .split(/\s{2,}/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  let mapped: string[];
+  if (values.length === fields.length) {
+    mapped = values;
+  } else if (values.length === fields.length - 1) {
+    // FINISHING (index 5) is the typical missing field on the SU'27 layout.
+    mapped = [...values.slice(0, 5), "", ...values.slice(5)];
+  } else {
+    return null;
+  }
+
+  if (!mapped[0]) return null;
+  return fields.map((field, i) => `|${field}|${mapped[i]}|`);
 }
 
 function escapeRegExp(value: string): string {
