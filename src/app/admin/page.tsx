@@ -9,7 +9,9 @@ import { fetchMemos, fetchSelections, fetchStyles } from "@/lib/api";
 import HandoffStyles from "@/components/handoff/HandoffStyles";
 import Mono from "@/components/handoff/Mono";
 import StyleImageUploader from "@/components/admin/StyleImageUploader";
+import FabricEditModal from "@/components/admin/FabricEditModal";
 import ToastContainer, { showToast } from "@/components/Toast";
+import type { FabricDetail } from "@/lib/fabric-details";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import {
   PALETTE,
@@ -28,6 +30,7 @@ export default function AdminPage() {
   const [activeDivision, setActiveDivision] = useState<string>("");
   const [filter, setFilter] = useState<AdminFilter>("all");
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [editingStyleId, setEditingStyleId] = useState<string | null>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -334,6 +337,14 @@ export default function AdminPage() {
                                 showToast(`Detail upload failed: ${message}`, "error")
                               }
                             />
+                            <button
+                              type="button"
+                              className="admin-edit-fabric"
+                              onClick={() => setEditingStyleId(style.id)}
+                              aria-label={`Edit fabric details for ${style.id}`}
+                            >
+                              {style.fabric_override ? "Edit fabric ✱" : "Edit fabric"}
+                            </button>
                           </div>
                           {total > 0 ? (
                             <div className="admin-vote-row">
@@ -433,6 +444,22 @@ export default function AdminPage() {
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
+          align-items: center;
+        }
+        .admin-edit-fabric {
+          padding: 5px 10px;
+          font-size: 11px;
+          color: ${PALETTE.ink};
+          background: ${PALETTE.bg};
+          border: 1px solid ${PALETTE.rule};
+          border-radius: 4px;
+          cursor: pointer;
+          font-family: inherit;
+          transition: border-color 0.15s, background 0.15s;
+        }
+        .admin-edit-fabric:hover {
+          border-color: ${PALETTE.peach};
+          background: ${PALETTE.panel};
         }
         .style-img-uploader {
           display: inline-flex;
@@ -506,6 +533,68 @@ export default function AdminPage() {
           color: ${PALETTE.inkLight};
         }
       `}</style>
+      {editingStyleId && (() => {
+        const target = styles.find((s) => s.id === editingStyleId);
+        if (!target) return null;
+        // Pre-fill: existing override if set, else the first fabric mapping row.
+        const initial: Partial<FabricDetail> | null =
+          target.fabric_override ??
+          (target.fabric_details && target.fabric_details[0]
+            ? target.fabric_details[0]
+            : null);
+        return (
+          <FabricEditModal
+            styleId={target.id}
+            initial={initial}
+            onClose={() => setEditingStyleId(null)}
+            onSaved={(override) => {
+              setStyles((prev) =>
+                prev.map((s) =>
+                  s.id === target.id
+                    ? {
+                        ...s,
+                        fabric_override: override,
+                        // Drop the mapped fabric_details so the override (or workbook
+                        // fallback) is re-derived on next fetch. Local UI immediately
+                        // reflects the override-as-only-row pattern.
+                        fabric_details: override
+                          ? [
+                              {
+                                sourceSheet: "",
+                                pattern: "",
+                                option: "",
+                                fabricCode: "",
+                                supplier: "",
+                                construction: "",
+                                content: "",
+                                widthInch: "",
+                                weightGm2: "",
+                                priceYd: "",
+                                priceLb: "",
+                                finish: "",
+                                yarnDetail: "",
+                                comment: "",
+                                fabricCountry: "",
+                                originalText: "",
+                                ...override,
+                                styleId: s.id,
+                              } as FabricDetail,
+                            ]
+                          : s.fabric_details,
+                      }
+                    : s
+                )
+              );
+              showToast(
+                override
+                  ? `Saved fabric override for ${target.id}`
+                  : `Cleared fabric override for ${target.id}`,
+                "success"
+              );
+            }}
+          />
+        );
+      })()}
       <ToastContainer />
     </>
   );

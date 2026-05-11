@@ -37,12 +37,35 @@ export function getFabricDetailsForStyleFromRows(
   return indexFabricDetails(rows)[normalizeStyleId(styleId)] ?? [];
 }
 
-export function attachFabricDetailsFromRows<T extends { id: string }>(
+function emptyFabricDetail(styleId: string): FabricDetail {
+  return {
+    sourceSheet: "", pattern: "", styleId, option: "",
+    fabricCode: "", supplier: "", construction: "", content: "",
+    widthInch: "", weightGm2: "", priceYd: "", priceLb: "",
+    finish: "", yarnDetail: "", comment: "", fabricCountry: "",
+    originalText: "",
+  };
+}
+
+export function attachFabricDetailsFromRows<
+  T extends { id: string; fabric_override?: Partial<FabricDetail> | null }
+>(
   styles: T[],
   rows: FabricDetail[]
 ): Array<T & { fabric_details?: FabricDetail[] }> {
   const detailsByStyle = indexFabricDetails(rows);
   return styles.map((style) => {
+    // Manual override takes precedence: it represents a single fabric row that
+    // the admin entered/edited explicitly. Falls back to the workbook mapping
+    // when no override is set.
+    if (style.fabric_override && Object.values(style.fabric_override).some(Boolean)) {
+      const merged: FabricDetail = {
+        ...emptyFabricDetail(style.id),
+        ...style.fabric_override,
+        styleId: style.id,
+      };
+      return { ...style, fabric_details: [merged] };
+    }
     const fabricDetails = detailsByStyle[normalizeStyleId(style.id)] ?? [];
     return fabricDetails.length > 0
       ? { ...style, fabric_details: fabricDetails }

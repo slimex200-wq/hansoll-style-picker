@@ -13,7 +13,12 @@ create table styles (
   images text[] default '{}',
   fabric_image_url text,
   detail_image_url text,
-  fabric_suggestion jsonb
+  fabric_suggestion jsonb,
+  -- Per-style admin override of the workbook fabric mapping. When non-null,
+  -- attachFabricDetailsFromRows supplants the matched workbook row(s) with a
+  -- single FabricDetail built from this object. Edited via the /admin "Edit
+  -- fabric" modal → PATCH /api/styles/[id]/fabric.
+  fabric_override jsonb
 );
 
 -- 2. selections 테이블
