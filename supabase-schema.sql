@@ -48,16 +48,13 @@ alter table memos enable row level security;
 -- 5. RLS 정책
 create policy "styles_read" on styles for select using (true);
 
+-- Writes to selections/memos go through Next.js route handlers
+-- (/api/selections, /api/memos) using SUPABASE_SERVICE_ROLE_KEY, which bypasses
+-- RLS. Anon clients only need SELECT — leaving anon writes open would allow
+-- anyone with the public anon key to wipe other reviewers' data from devtools.
+-- See migrations/2026-05-11-selections-rls-server-writes.sql.
 create policy "selections_read" on selections for select using (true);
-create policy "selections_insert" on selections for insert with check (true);
--- Anon clients send user_id from localStorage (no auth context), so server-side
--- ownership filtering isn't enforceable here. Application logic gates updates by
--- the local user_id. The previous (user_id = user_id) tautology was a no-op.
-create policy "selections_update" on selections for update using (true);
-create policy "selections_delete" on selections for delete using (true);
-
 create policy "memos_read" on memos for select using (true);
-create policy "memos_insert" on memos for insert with check (true);
 
 -- 6. Seed 스타일 데이터
 -- NOTE: Replace <PROJECT_REF> with your actual Supabase project reference
