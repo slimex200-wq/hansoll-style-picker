@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock getSupabase before importing api module
 const mockFrom = vi.fn();
@@ -6,7 +6,14 @@ vi.mock("@/lib/supabase", () => ({
   getSupabase: () => ({ from: mockFrom }),
 }));
 
-import { fetchStyles, fetchSelections, fetchMemos, upsertSelection, insertMemo } from "../api";
+import {
+  fetchStyles,
+  fetchSelections,
+  fetchMemos,
+  upsertSelection,
+  deleteSelection,
+  insertMemo,
+} from "../api";
 
 function mockChain(terminal: { data: unknown; error: unknown }) {
   const chain = {
@@ -105,75 +112,124 @@ describe("fetchMemos", () => {
   });
 });
 
-describe("upsertSelection", () => {
-  it("returns saved selection on success", async () => {
+describe("upsertSelection (via /api/selections)", () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("posts to /api/selections and returns saved row", async () => {
     const saved = { id: "sel-1", status: "shortlist" };
-    const chain = mockChain({ data: saved, error: null });
-    // Override single to return the selection
-    chain.single.mockResolvedValue({ data: saved, error: null });
-    // Make upsert return chain for select().single() chaining
-    chain.upsert.mockReturnValue(chain);
-    chain.select.mockReturnValue(chain);
-    mockFrom.mockReturnValue(chain);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: saved }),
+    });
 
     const result = await upsertSelection("S1", "COL1", "U1", "Alice", "shortlist");
     expect(result).toEqual(saved);
-    expect(chain.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        style_id: "S1",
-        collection: "COL1",
-        user_id: "U1",
-        user_name: "Alice",
-        status: "shortlist",
-      }),
-      { onConflict: "style_id,user_id" }
-    );
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/api/selections");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      styleId: "S1",
+      collection: "COL1",
+      userId: "U1",
+      userName: "Alice",
+      status: "shortlist",
+    });
   });
 
-  it("throws on error", async () => {
-    const chain = mockChain({ data: null, error: null });
-    chain.single.mockResolvedValue({ data: null, error: { message: "Conflict" } });
-    chain.upsert.mockReturnValue(chain);
-    chain.select.mockReturnValue(chain);
-    mockFrom.mockReturnValue(chain);
+  it("throws with the API error message on failure", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "Failed to save selection: Conflict" }),
+    });
 
     await expect(
       upsertSelection("S1", "COL1", "U1", "Alice", "shortlist")
-    ).rejects.toThrow("Failed to save selection");
+    ).rejects.toThrow("Failed to save selection: Conflict");
   });
 });
 
-describe("insertMemo", () => {
-  it("returns saved memo on success", async () => {
+describe("deleteSelection (via /api/selections)", () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("sends DELETE with styleId and userId", async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+
+    await deleteSelection("S1", "U1");
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/api/selections");
+    expect(init.method).toBe("DELETE");
+    expect(JSON.parse(init.body as string)).toEqual({ styleId: "S1", userId: "U1" });
+  });
+
+  it("throws with the API error on non-2xx", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "DB unreachable" }),
+    });
+
+    await expect(deleteSelection("S1", "U1")).rejects.toThrow("DB unreachable");
+  });
+});
+
+describe("insertMemo (via /api/memos)", () => {
+  const fetchMock = vi.fn();
+  beforeEach(() => {
+    fetchMock.mockReset();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("posts to /api/memos and returns saved memo", async () => {
     const saved = { id: "m1", content: "Test" };
-    const chain = mockChain({ data: saved, error: null });
-    chain.single.mockResolvedValue({ data: saved, error: null });
-    chain.insert.mockReturnValue(chain);
-    chain.select.mockReturnValue(chain);
-    mockFrom.mockReturnValue(chain);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: saved }),
+    });
 
     const result = await insertMemo("S1", "COL1", "U1", "Alice", "Test");
     expect(result).toEqual(saved);
-    expect(chain.insert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        style_id: "S1",
-        collection: "COL1",
-        user_id: "U1",
-        user_name: "Alice",
-        content: "Test",
-      })
-    );
+
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/api/memos");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      styleId: "S1",
+      collection: "COL1",
+      userId: "U1",
+      userName: "Alice",
+      content: "Test",
+    });
   });
 
-  it("throws on error", async () => {
-    const chain = mockChain({ data: null, error: null });
-    chain.single.mockResolvedValue({ data: null, error: { message: "Insert fail" } });
-    chain.insert.mockReturnValue(chain);
-    chain.select.mockReturnValue(chain);
-    mockFrom.mockReturnValue(chain);
+  it("throws with the API error message on failure", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "Failed to save memo: Insert fail" }),
+    });
 
     await expect(
       insertMemo("S1", "COL1", "U1", "Alice", "Test")
-    ).rejects.toThrow("Failed to save memo");
+    ).rejects.toThrow("Failed to save memo: Insert fail");
   });
 });

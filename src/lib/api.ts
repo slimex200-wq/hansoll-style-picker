@@ -32,6 +32,19 @@ export async function fetchMemos(collection?: string): Promise<Memo[]> {
   return data as Memo[];
 }
 
+async function postJson<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const json = (await res.json().catch(() => ({}))) as { data?: T; error?: string };
+  if (!res.ok) {
+    throw new Error(json.error ?? `Request failed: ${res.status}`);
+  }
+  return json.data as T;
+}
+
 export async function upsertSelection(
   styleId: string,
   collection: string,
@@ -39,37 +52,28 @@ export async function upsertSelection(
   userName: string,
   status: SelectionStatus
 ): Promise<Selection> {
-  const { data, error } = await getSupabase()
-    .from("selections")
-    .upsert(
-      {
-        style_id: styleId,
-        collection,
-        user_id: userId,
-        user_name: userName,
-        status,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "style_id,user_id" }
-    )
-    .select()
-    .single();
-
-  if (error) throw new Error(`Failed to save selection: ${error.message}`);
-  return data as Selection;
+  return postJson<Selection>("/api/selections", {
+    styleId,
+    collection,
+    userId,
+    userName,
+    status,
+  });
 }
 
 export async function deleteSelection(
   styleId: string,
   userId: string
 ): Promise<void> {
-  const { error } = await getSupabase()
-    .from("selections")
-    .delete()
-    .eq("style_id", styleId)
-    .eq("user_id", userId);
-
-  if (error) throw new Error(`Failed to clear selection: ${error.message}`);
+  const res = await fetch("/api/selections", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ styleId, userId }),
+  });
+  if (!res.ok) {
+    const json = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(json.error ?? `Failed to clear selection: ${res.status}`);
+  }
 }
 
 export interface PaginatedMemos {
@@ -103,18 +107,11 @@ export async function insertMemo(
   userName: string,
   content: string
 ): Promise<Memo> {
-  const { data, error } = await getSupabase()
-    .from("memos")
-    .insert({
-      style_id: styleId,
-      collection,
-      user_id: userId,
-      user_name: userName,
-      content,
-    })
-    .select()
-    .single();
-
-  if (error) throw new Error(`Failed to save memo: ${error.message}`);
-  return data as Memo;
+  return postJson<Memo>("/api/memos", {
+    styleId,
+    collection,
+    userId,
+    userName,
+    content,
+  });
 }
