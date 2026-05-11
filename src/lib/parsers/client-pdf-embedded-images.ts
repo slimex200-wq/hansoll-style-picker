@@ -57,7 +57,15 @@ interface PdfPageObjs {
 interface PdfPage {
   getOperatorList(): Promise<{ fnArray: number[]; argsArray: unknown[][] }>;
   objs: PdfPageObjs;
+  commonObjs: PdfPageObjs;
 }
+
+// Image XObjects shared across pages get a `g_` prefix and live in
+// page.commonObjs; per-page ones are in page.objs. Calling .get on the wrong
+// store hangs forever, so we route by name and fall back to the other store
+// with a hard timeout (some images simply don't decode — better to skip than
+// freeze the whole import).
+const RESOLVE_TIMEOUT_MS = 3000;
 
 export async function extractPdfEmbeddedImages(
   file: File,
@@ -124,10 +132,32 @@ export async function extractPdfEmbeddedImages(
   return results;
 }
 
-function resolveImage(page: PdfPage, name: string): Promise<PdfImage | null> {
+function resolveFromStore(
+  store: PdfPageObjs,
+  name: string
+): Promise<PdfImage | null | "timeout"> {
   return new Promise((resolve) => {
-    page.objs.get(name, (img) => resolve(img ?? null));
+    const timer = setTimeout(() => resolve("timeout"), RESOLVE_TIMEOUT_MS);
+    try {
+      store.get(name, (img) => {
+        clearTimeout(timer);
+        resolve(img ?? null);
+      });
+    } catch {
+      clearTimeout(timer);
+      resolve(null);
+    }
   });
+}
+
+async function resolveImage(page: PdfPage, name: string): Promise<PdfImage | null> {
+  const primary = name.startsWith("g_") ? page.commonObjs : page.objs;
+  const fallback = primary === page.commonObjs ? page.objs : page.commonObjs;
+  let img = await resolveFromStore(primary, name);
+  if (img === "timeout" || img === null) {
+    img = await resolveFromStore(fallback, name);
+  }
+  return img && img !== "timeout" ? img : null;
 }
 
 async function imageToJpegBlob(img: PdfImage): Promise<Blob | null> {
