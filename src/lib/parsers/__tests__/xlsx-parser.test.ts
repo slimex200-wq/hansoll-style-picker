@@ -63,6 +63,53 @@ describe("parseFabricMappingWorkbook", () => {
     ]);
   });
 
+  it("does not shift columns when self-closing <c/> cells appear between valued cells", async () => {
+    // Real Excel files emit `<c r=".." s=".."/>` for styled-but-empty cells.
+    // The previous regex matched these as if they were normal opening tags and
+    // pulled the FOLLOWING cell's <v> body into them, shifting every later
+    // value (e.g. the user's HDW227106 row had FL code in Option, Construction
+    // in Supplier, weight in Width, and a sharedStrings index leaked into $/YD).
+    const layout = [
+      { ref: "A2", value: "KNIT TOP", string: true },
+      { ref: "B2", value: "PAT-1",    string: true },
+      { ref: "C2", value: "STY-1",    string: true },
+      { ref: "D2", value: "",         empty: true }, // Option blank
+      { ref: "E2", value: "FL-CODE",  string: true },
+      { ref: "F2", value: "",         empty: true }, // Supplier blank
+      { ref: "G2", value: "Slub Jersey", string: true }, // Construction
+      { ref: "H2", value: "100% Cotton", string: true }, // Content
+      { ref: "I2", value: "",         empty: true }, // Width blank
+      { ref: "J2", value: "190",      number: true }, // Weight 190
+      { ref: "K2", value: "",         empty: true }, // $/YD blank
+      { ref: "L2", value: "",         empty: true },
+      { ref: "M2", value: "",         empty: true },
+      { ref: "N2", value: "",         empty: true },
+      { ref: "O2", value: "comment text", string: true },
+      { ref: "P2", value: "",         empty: true },
+      { ref: "Q2", value: "FL-CODE original", string: true },
+    ];
+    const workbook = await buildWorkbookCustom([HEADERS], layout);
+    const result = await parseFabricMappingWorkbook(workbook);
+
+    expect(result.rows[0]).toMatchObject({
+      styleId: "STY-1",
+      option: "",
+      fabricCode: "FL-CODE",
+      supplier: "",
+      construction: "Slub Jersey",
+      content: "100% Cotton",
+      widthInch: "",
+      weightGm2: "190",
+      priceYd: "",
+      priceLb: "",
+      finish: "",
+      yarnDetail: "",
+      comment: "comment text",
+      fabricCountry: "",
+      originalText: "FL-CODE original",
+    });
+  });
+
   it("recovers shared string indexes from string columns", async () => {
     const workbook = await buildWorkbook(
       [
@@ -102,6 +149,65 @@ describe("parseFabricMappingWorkbook", () => {
     });
   });
 });
+
+interface CellSpec {
+  ref: string;
+  value: string;
+  string?: boolean;
+  number?: boolean;
+  empty?: boolean;
+}
+
+async function buildWorkbookCustom(
+  headerRows: string[][],
+  dataCells: CellSpec[]
+): Promise<ArrayBuffer> {
+  const stringSet = new Set<string>(headerRows.flat());
+  for (const c of dataCells) if (c.string) stringSet.add(c.value);
+  const strings = [...stringSet];
+  const stringIndex = new Map(strings.map((v, i) => [v, i]));
+  const zip = new JSZip();
+  zip.file(
+    "xl/workbook.xml",
+    '<workbook xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Style-Fabric Mapping" sheetId="1" r:id="rId1"/></sheets></workbook>'
+  );
+  zip.file(
+    "xl/_rels/workbook.xml.rels",
+    '<Relationships><Relationship Id="rId1" Type="worksheet" Target="worksheets/sheet1.xml"/></Relationships>'
+  );
+  zip.file(
+    "xl/sharedStrings.xml",
+    `<sst>${strings.map((v) => `<si><t>${escapeXml(v)}</t></si>`).join("")}</sst>`
+  );
+
+  const headerXml = headerRows
+    .map((row, rIdx) => {
+      const cells = row
+        .map((v, cIdx) => {
+          const ref = `${columnName(cIdx)}${rIdx + 1}`;
+          return `<c r="${ref}" t="s"><v>${stringIndex.get(v) ?? 0}</v></c>`;
+        })
+        .join("");
+      return `<row r="${rIdx + 1}">${cells}</row>`;
+    })
+    .join("");
+
+  const dataCellsXml = dataCells
+    .map((c) => {
+      if (c.empty) return `<c r="${c.ref}" s="15"/>`;
+      if (c.number) return `<c r="${c.ref}" s="15"><v>${c.value}</v></c>`;
+      const idx = stringIndex.get(c.value) ?? 0;
+      return `<c r="${c.ref}" s="15" t="s"><v>${idx}</v></c>`;
+    })
+    .join("");
+  const dataRowXml = `<row r="2">${dataCellsXml}</row>`;
+
+  zip.file(
+    "xl/worksheets/sheet1.xml",
+    `<worksheet><sheetData>${headerXml}${dataRowXml}</sheetData></worksheet>`
+  );
+  return zip.generateAsync({ type: "arraybuffer" });
+}
 
 async function buildWorkbook(
   rows: string[][],

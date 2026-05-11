@@ -187,15 +187,22 @@ function parseSheetRows(sheetXml: string, sharedStrings: string[]): string[][] {
   const rows: string[][] = [];
   const rowMatches = [...sheetXml.matchAll(/<row\b[^>]*>([\s\S]*?)<\/row>/g)];
 
+  // Match BOTH self-closing `<c .../>` (styled-but-empty cells) and proper
+  // `<c ...>body</c>`. The previous regex only had the second form, and its
+  // `[^>]*` attrs class swallowed the `/` in self-closing tags — pairing the
+  // self-closing attrs with the FOLLOWING cell's <v> body and shifting every
+  // subsequent column. Excluding `/` from the attrs class makes `\/>` the only
+  // way a self-closing cell can terminate.
+  const CELL_RE = /<c\b([^/>]*)(?:\/>|>([\s\S]*?)<\/c>)/g;
+
   for (const rowMatch of rowMatches) {
     const row: string[] = [];
-    const cellMatches = [...rowMatch[1].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)];
-    for (const cellMatch of cellMatches) {
+    for (const cellMatch of rowMatch[1].matchAll(CELL_RE)) {
       const attrs = cellMatch[1];
-      const body = cellMatch[2];
+      const body = cellMatch[2]; // undefined for self-closing
       const ref = getAttribute(`<c ${attrs}>`, "r");
       const colIndex = ref ? columnNameToIndex(ref.replace(/\d+/g, "")) : row.length;
-      row[colIndex] = readCellValue(attrs, body, sharedStrings);
+      row[colIndex] = body !== undefined ? readCellValue(attrs, body, sharedStrings) : "";
     }
     rows.push(row.map((cell) => cell ?? ""));
   }
