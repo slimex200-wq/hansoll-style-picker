@@ -178,16 +178,27 @@ describe("parseMarkdownStyles", () => {
     expect(result.styles[0].weight).toBe("225 G/M2");
   });
 
-  it("detects SU27-T-BY-TALBOTS from SUM'27 cover with underscore-joined T BY TALBOTS", () => {
-    const text = `| Talbots  MAY 2026  SUM'27 T_BY_TALBOTS PREMEETING RECAP\n${SINGLE_STYLE}`;
-    const result = parseMarkdownStyles(text);
-    expect(result.styles[0].collection).toBe("SU27-T-BY-TALBOTS");
+  it("both SUM'27 covers land in a single SU27-TALBOTS collection", () => {
+    const tby = parseMarkdownStyles(
+      `| Talbots  MAY 2026  SUM'27 T_BY_TALBOTS PREMEETING RECAP\n${SINGLE_STYLE}`
+    );
+    const main = parseMarkdownStyles(
+      `| Talbots  MAY 2026  SUM'27 TALBOTS PREMEETING RECAP\n${SINGLE_STYLE}`
+    );
+    expect(tby.styles[0].collection).toBe("SU27-TALBOTS");
+    expect(main.styles[0].collection).toBe("SU27-TALBOTS");
   });
 
-  it("detects SU27-TALBOTS-OUTLET from SUM'27 cover (no T BY)", () => {
+  it("SUM'27 T_BY_TALBOTS cover sets division to T BY TALBOTS", () => {
+    const text = `| Talbots  MAY 2026  SUM'27 T_BY_TALBOTS PREMEETING RECAP\n${SINGLE_STYLE}`;
+    const result = parseMarkdownStyles(text);
+    expect(result.styles[0].division).toBe("T BY TALBOTS");
+  });
+
+  it("plain SUM'27 TALBOTS cover keeps the default Knit Top division", () => {
     const text = `| Talbots  MAY 2026  SUM'27 TALBOTS PREMEETING RECAP\n${SINGLE_STYLE}`;
     const result = parseMarkdownStyles(text);
-    expect(result.styles[0].collection).toBe("SU27-TALBOTS-OUTLET");
+    expect(result.styles[0].division).toBe("Knit Top");
   });
 
   it("falls back to the hard-coded default when defaultCollection is null", () => {

@@ -23,15 +23,28 @@ const FIELD_RE = {
 // Collection patterns. More specific patterns must come first because the
 // last-position match wins (so a pattern matching the cover page should also
 // be the most specific).
+//
+// Both SUM'27 PDFs land in a single SU27-TALBOTS collection so the sidebar can
+// show one season with division-level breakdown (T BY TALBOTS vs Knit Top),
+// instead of switching between two collections per upload.
 const COLLECTION_PATTERNS: Array<{ pattern: RegExp; collection: string }> = [
-  // SUM'27 — pdfjs sometimes joins "T BY TALBOTS" with underscores instead of spaces.
-  { pattern: /SUM['\s]*27[\s_]+T[\s_]+BY[\s_]+TALBOTS/i, collection: "SU27-T-BY-TALBOTS" },
-  { pattern: /SUM['\s]*27[\s_]+TALBOTS/i, collection: "SU27-TALBOTS-OUTLET" },
+  { pattern: /SUM['\s]*27[\s_]+T[\s_]+BY[\s_]+TALBOTS/i, collection: "SU27-TALBOTS" },
+  { pattern: /SUM['\s]*27[\s_]+TALBOTS/i, collection: "SU27-TALBOTS" },
   // SP'27
   { pattern: /For\s+T\s+by\s+Talbots/i, collection: "T-BY-TALBOTS" },
   { pattern: /T\s+by\s+Talbots/i, collection: "T-BY-TALBOTS" },
   { pattern: /SP.*27.*TXT.*TALBOTS\s+OUTLET/i, collection: "SP27-TALBOTS-OUTLET" },
   { pattern: /TALBOTS\s+OUTLET/i, collection: "SP27-TALBOTS-OUTLET" },
+];
+
+// Division patterns — search the same context (text-before-style-block) for
+// markers that put the style under a non-default division.
+const DIVISION_PATTERNS: Array<{ pattern: RegExp; division: string }> = [
+  // SUM'27 T BY TALBOTS PDF cover reads "SUM'27 T_BY_TALBOTS PREMEETING RECAP"
+  // (pdfjs joins with underscores). Tag those styles as T BY TALBOTS division.
+  { pattern: /SUM['\s]*27[\s_]+T[\s_]+BY[\s_]+TALBOTS/i, division: "T BY TALBOTS" },
+  // SP'27 TXT section marker (legacy)
+  { pattern: /SP['\s]*27\s+TXT/i, division: "TXT" },
 ];
 
 function extractField(block: string, field: keyof typeof FIELD_RE): string {
@@ -73,12 +86,17 @@ function parseFabricSuggestion(
 }
 
 function detectDivision(textBefore: string, defaultDivision: string): string {
-  // Check from end to start for the most recent division marker
-  const txtMatch = textBefore.match(/SP'27\s+TXT/i);
-  if (txtMatch) return "TXT";
-
-  // Default to the provided division
-  return defaultDivision;
+  // Walk DIVISION_PATTERNS the same way detectCollection does — last match wins.
+  let lastIndex = -1;
+  let lastDivision = defaultDivision;
+  for (const { pattern, division } of DIVISION_PATTERNS) {
+    const match = textBefore.match(pattern);
+    if (match && match.index !== undefined && match.index > lastIndex) {
+      lastIndex = match.index;
+      lastDivision = division;
+    }
+  }
+  return lastDivision;
 }
 
 function detectCollection(
