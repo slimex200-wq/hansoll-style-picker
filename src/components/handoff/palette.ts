@@ -30,7 +30,7 @@ export function formatDisplayPrice(price?: string): string | null {
   if (!price) return null;
   const parsed = Number.parseFloat(price.replace(/[$,]/g, ""));
   if (!Number.isFinite(parsed)) return null;
-  return `$${(parsed + 0.2).toFixed(2)}/YD`;
+  return `$${parsed.toFixed(2)}/YD`;
 }
 
 export function joinParts(...parts: Array<string | null | undefined | false>): string {
