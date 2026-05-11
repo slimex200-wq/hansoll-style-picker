@@ -11,6 +11,7 @@ import Mono from "@/components/handoff/Mono";
 import { PALETTE } from "@/components/handoff/palette";
 import type { FabricDetail } from "@/lib/fabric-details";
 import { parseFabricMappingWorkbook } from "@/lib/parsers/xlsx-parser";
+import { parsePdfClient } from "@/lib/parsers/client-pdf-text";
 
 type ParseState =
   | "idle"
@@ -81,18 +82,35 @@ export default function UploadPage() {
   const handlePdfUpload = async (file: File) => {
     setState("uploading");
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/parse-pdf", { method: "POST", body: formData });
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error);
-
-      setParsedData(data);
+      // Parse in the browser to bypass Vercel's ~4.5MB request body limit
+      // (5MB+ PDFs would 413 before /api/parse-pdf even ran).
+      const result = await parsePdfClient(file);
+      setParsedData({
+        styles: result.styles.map((s) => ({
+          style_id: s.style_id,
+          fabric_no: s.fabric_no,
+          contents: s.contents,
+          construction: s.construction,
+          weight: s.weight,
+          finishing: s.finishing,
+          designed_by: s.designed_by,
+          division: s.division,
+          collection: s.collection,
+          fabric_suggestion: s.fabric_suggestion,
+          image_urls: [] as string[],
+        })),
+        errors: result.errors,
+        warnings: result.warnings,
+        metadata: {
+          totalPages: result.metadata.totalPages,
+          source: result.metadata.source,
+          collections: result.metadata.collections,
+          divisions: result.metadata.divisions,
+        },
+      });
       setState("preview");
     } catch (e) {
-      showToast(`Upload failed: ${(e as Error).message}`, "error");
+      showToast(`PDF parsing failed: ${(e as Error).message}`, "error");
       setState("idle");
     }
   };
