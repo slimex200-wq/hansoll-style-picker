@@ -10,7 +10,10 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    const collection = formData.get("collection") as string | undefined;
+    const rawCollection = formData.get("collection");
+    const collection = typeof rawCollection === "string" && rawCollection.trim()
+      ? rawCollection.trim()
+      : undefined;
 
     if (!file) {
       return NextResponse.json({ error: "ZIP file required" }, { status: 400 });

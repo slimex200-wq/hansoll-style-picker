@@ -177,4 +177,23 @@ describe("parseMarkdownStyles", () => {
     const result = parseMarkdownStyles(SINGLE_STYLE);
     expect(result.styles[0].weight).toBe("225 G/M2");
   });
+
+  it("detects SU27-T-BY-TALBOTS from SUM'27 cover with underscore-joined T BY TALBOTS", () => {
+    const text = `| Talbots  MAY 2026  SUM'27 T_BY_TALBOTS PREMEETING RECAP\n${SINGLE_STYLE}`;
+    const result = parseMarkdownStyles(text);
+    expect(result.styles[0].collection).toBe("SU27-T-BY-TALBOTS");
+  });
+
+  it("detects SU27-TALBOTS-OUTLET from SUM'27 cover (no T BY)", () => {
+    const text = `| Talbots  MAY 2026  SUM'27 TALBOTS PREMEETING RECAP\n${SINGLE_STYLE}`;
+    const result = parseMarkdownStyles(text);
+    expect(result.styles[0].collection).toBe("SU27-TALBOTS-OUTLET");
+  });
+
+  it("falls back to the hard-coded default when defaultCollection is null", () => {
+    const result = parseMarkdownStyles(SINGLE_STYLE, {
+      defaultCollection: null as unknown as string,
+    });
+    expect(result.styles[0].collection).toBe("SP27-TALBOTS-OUTLET");
+  });
 });

@@ -8,7 +8,13 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    const collection = formData.get("collection") as string | undefined;
+    // formData.get returns `string | File | null`; coerce missing/empty to undefined
+    // so the parser falls back to its hard-coded default rather than passing null
+    // through to detectCollection (which would yield collection: null on import).
+    const rawCollection = formData.get("collection");
+    const collection = typeof rawCollection === "string" && rawCollection.trim()
+      ? rawCollection.trim()
+      : undefined;
 
     if (!file || file.type !== "application/pdf") {
       return NextResponse.json({ error: "PDF file required" }, { status: 400 });
