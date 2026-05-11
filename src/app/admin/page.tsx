@@ -163,6 +163,9 @@ export default function AdminPage() {
             </div>
             <div />
             <div className="mock-actions">
+              <Link className="mock-upload" href="/admin/collections">
+                Collections
+              </Link>
               <Link className="mock-upload" href="/admin/upload">
                 Upload Data
               </Link>
