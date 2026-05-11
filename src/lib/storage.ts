@@ -84,7 +84,13 @@ export async function uploadTempImage(
   return `${url}/storage/v1/object/public/style-images/${path}`;
 }
 
-/** Browser에서 Blob을 Supabase Storage에 직접 업로드 */
+/** Browser에서 Blob을 Supabase Storage에 직접 업로드.
+ *
+ * `upsert` is intentionally false: the anon RLS policy on the temp/ prefix
+ * grants INSERT only, and Supabase Storage's `x-upsert: true` header routes
+ * the request through a policy path that fails RLS even for fresh paths.
+ * Callers pass a unique sessionId for each batch, so collisions don't occur.
+ */
 export async function uploadImageFromBrowser(
   blob: Blob,
   sessionId: string,
@@ -96,7 +102,7 @@ export async function uploadImageFromBrowser(
     .storage.from("style-images")
     .upload(path, blob, {
       contentType: blob.type,
-      upsert: true,
+      upsert: false,
     });
 
   if (error) throw new Error(`Browser image upload failed: ${error.message}`);
