@@ -55,8 +55,13 @@ export async function parsePdfClient(
   result.metadata.totalPages = doc.numPages;
   result.metadata.source = "pdf";
 
+  // Map each style to its spec page, not the (earlier) index page that lists
+  // every style ID in a thumbnail grid. SUM'27 PDFs put index pages 2-4 first
+  // (each containing ~12 style IDs in a row of thumbnails), then one spec
+  // page per style. findIndex would match the index page first and assign the
+  // grid's 12 thumbnails to every style; findLastIndex picks the spec page.
   for (const style of result.styles) {
-    const pageIndex = pageTexts.findIndex((text) => text.includes(style.style_id));
+    const pageIndex = pageTexts.findLastIndex((text) => text.includes(style.style_id));
     if (pageIndex !== -1) {
       style.pageNum = pageIndex + 1;
     }

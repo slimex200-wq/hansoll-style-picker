@@ -98,15 +98,22 @@ export default function UploadPage() {
         setPdfProgress(`Extracting images: ${pageNum}/${totalPages} (${imagesSoFar} found)`);
       });
 
-      // Step 3: upload each image blob to Supabase Storage (browser → Storage,
-      // bypasses Vercel body limits) and group resulting URLs by page number.
+      // Step 3: only upload images whose page is referenced by a style. Index
+      // pages (2-4 on SUM'27 PDFs) carry ~12 thumbnails each but no style
+      // points at them; uploading those is wasted bandwidth.
       const sessionId =
         typeof crypto !== "undefined" && "randomUUID" in crypto
           ? crypto.randomUUID()
           : `s${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const neededPages = new Set(
+        parsed.styles
+          .map((s) => s.pageNum)
+          .filter((p): p is number => typeof p === "number")
+      );
+      const usefulImages = images.filter((img) => neededPages.has(img.pageNum));
       const urlsByPage = new Map<number, string[]>();
-      const grouped = groupImagesByPage(images);
-      const totalImages = images.length;
+      const grouped = groupImagesByPage(usefulImages);
+      const totalImages = usefulImages.length;
       let uploaded = 0;
       for (const [pageNum, list] of grouped) {
         const urls: string[] = [];
