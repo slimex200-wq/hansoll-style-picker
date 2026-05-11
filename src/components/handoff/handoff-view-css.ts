@@ -149,9 +149,26 @@ export const HANDOFF_VIEW_CSS = `
   overflow: auto;
   padding: 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   align-content: start;
-  gap: 16px;
+  gap: 18px;
+}
+/* Cap the column count on wider viewports so cards stay readable next to the
+   permanent detail panel. */
+@media (min-width: 1400px) {
+  .mock-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1700px) {
+  .mock-gallery {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 2100px) {
+  .mock-gallery {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 .mock-gallery-card {
   border: 1px solid ${PALETTE.rule};
@@ -221,6 +238,39 @@ export const HANDOFF_VIEW_CSS = `
   align-items: center;
   gap: 8px;
 }
+/* Hover/keyboard overlay: actions float over the bottom of the hero image so
+   the card chrome stays compact and the photo gets max real estate. */
+.mock-gallery-actions.overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  margin: 0;
+  padding: 10px;
+  background: linear-gradient(to top, rgba(20, 18, 16, 0.78), rgba(20, 18, 16, 0));
+  opacity: 0;
+  transition: opacity 140ms ease-out;
+  pointer-events: none;
+  z-index: 2;
+}
+.mock-gallery-card:hover .mock-gallery-actions.overlay,
+.mock-gallery-card:focus-within .mock-gallery-actions.overlay,
+.mock-gallery-card.selected .mock-gallery-actions.overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+.mock-gallery-actions.overlay .mock-decision-buttons {
+  width: 100%;
+  gap: 6px;
+}
+.mock-gallery-actions.overlay .mock-decision-buttons button {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.06);
+  color: ${PALETTE.ink};
+  font-weight: 700;
+  padding: 8px 0;
+}
+.mock-gallery-actions.overlay .mock-decision-buttons button:hover {
+  background: #fff;
+}
 .mock-gallery-body p {
   margin: 6px 0 0;
   color: ${PALETTE.inkSoft};
@@ -235,13 +285,18 @@ export const HANDOFF_VIEW_CSS = `
   font-size: 11px;
 }
 .mock-detail {
-  width: 420px;
+  width: 460px;
   flex-shrink: 0;
   border-left: 1px solid ${PALETTE.rule};
   background: ${PALETTE.panel};
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+@media (min-width: 1700px) {
+  .mock-detail {
+    width: 520px;
+  }
 }
 .mock-detail-nav {
   height: 42px;
