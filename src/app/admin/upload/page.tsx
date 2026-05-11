@@ -12,6 +12,11 @@ import { PALETTE } from "@/components/handoff/palette";
 import type { FabricDetail } from "@/lib/fabric-details";
 import { parseFabricMappingWorkbook } from "@/lib/parsers/xlsx-parser";
 import { parsePdfClient } from "@/lib/parsers/client-pdf-text";
+import {
+  extractPdfEmbeddedImages,
+  groupImagesByPage,
+} from "@/lib/parsers/client-pdf-embedded-images";
+import { uploadImageFromBrowser } from "@/lib/storage";
 
 type ParseState =
   | "idle"
@@ -78,15 +83,49 @@ export default function UploadPage() {
   } | null>(null);
   const [mappingResult, setMappingResult] = useState<FabricMappingResult | null>(null);
   const [imageBatchResult, setImageBatchResult] = useState<ImageBatchResult | null>(null);
+  const [pdfProgress, setPdfProgress] = useState<string | null>(null);
 
   const handlePdfUpload = async (file: File) => {
     setState("uploading");
+    setPdfProgress("Parsing PDF text...");
     try {
-      // Parse in the browser to bypass Vercel's ~4.5MB request body limit
-      // (5MB+ PDFs would 413 before /api/parse-pdf even ran).
-      const result = await parsePdfClient(file);
+      // Step 1: parse text in the browser (bypasses Vercel's ~4.5MB body limit).
+      const parsed = await parsePdfClient(file);
+
+      // Step 2: extract embedded raster images per page.
+      setPdfProgress(`Extracting images from ${parsed.metadata.totalPages} pages...`);
+      const images = await extractPdfEmbeddedImages(file, ({ pageNum, totalPages, imagesSoFar }) => {
+        setPdfProgress(`Extracting images: ${pageNum}/${totalPages} (${imagesSoFar} found)`);
+      });
+
+      // Step 3: upload each image blob to Supabase Storage (browser → Storage,
+      // bypasses Vercel body limits) and group resulting URLs by page number.
+      const sessionId =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `s${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const urlsByPage = new Map<number, string[]>();
+      const grouped = groupImagesByPage(images);
+      const totalImages = images.length;
+      let uploaded = 0;
+      for (const [pageNum, list] of grouped) {
+        const urls: string[] = [];
+        for (const img of list) {
+          try {
+            const filename = `page${pageNum}-${img.imageIndex}.jpg`;
+            const url = await uploadImageFromBrowser(img.blob, sessionId, filename);
+            urls.push(url);
+          } catch {
+            // skip a single failed image
+          }
+          uploaded++;
+          setPdfProgress(`Uploading images: ${uploaded}/${totalImages}`);
+        }
+        if (urls.length > 0) urlsByPage.set(pageNum, urls);
+      }
+
       setParsedData({
-        styles: result.styles.map((s) => ({
+        styles: parsed.styles.map((s) => ({
           style_id: s.style_id,
           fabric_no: s.fabric_no,
           contents: s.contents,
@@ -97,19 +136,21 @@ export default function UploadPage() {
           division: s.division,
           collection: s.collection,
           fabric_suggestion: s.fabric_suggestion,
-          image_urls: [] as string[],
+          image_urls: s.pageNum ? urlsByPage.get(s.pageNum) ?? [] : [],
         })),
-        errors: result.errors,
-        warnings: result.warnings,
+        errors: parsed.errors,
+        warnings: parsed.warnings,
         metadata: {
-          totalPages: result.metadata.totalPages,
-          source: result.metadata.source,
-          collections: result.metadata.collections,
-          divisions: result.metadata.divisions,
+          totalPages: parsed.metadata.totalPages,
+          source: parsed.metadata.source,
+          collections: parsed.metadata.collections,
+          divisions: parsed.metadata.divisions,
         },
       });
+      setPdfProgress(null);
       setState("preview");
     } catch (e) {
+      setPdfProgress(null);
       showToast(`PDF parsing failed: ${(e as Error).message}`, "error");
       setState("idle");
     }
@@ -345,7 +386,9 @@ export default function UploadPage() {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="text-[14px] text-[#888]">Processing file...</div>
-              <div className="text-[12px] text-[#aaa] mt-1">{processingDescription}</div>
+              <div className="text-[12px] text-[#aaa] mt-1">
+                {pdfProgress ?? processingDescription}
+              </div>
             </div>
           </div>
         )}
