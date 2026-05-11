@@ -22,6 +22,9 @@ export interface Style {
     weight: string;
   } | null;
   fabric_details?: FabricDetail[];
+  /** Per-style manual override. When non-null, supplants the workbook mapping
+   *  in attachFabricDetailsFromRows. Stored in styles.fabric_override (jsonb). */
+  fabric_override?: Partial<FabricDetail> | null;
 }
 
 export interface Selection {
