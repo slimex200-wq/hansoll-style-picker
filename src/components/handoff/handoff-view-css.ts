@@ -422,6 +422,34 @@ export const HANDOFF_VIEW_CSS = `
   padding: 15px 16px;
   border-bottom: 1px solid ${PALETTE.rule};
 }
+.mock-detail-style-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mock-detail-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: ${PALETTE.ink};
+  background: ${PALETTE.bg};
+  border: 1px solid ${PALETTE.rule};
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+.mock-detail-edit:hover {
+  border-color: ${PALETTE.peach};
+  background: ${PALETTE.panel};
+}
+.mock-detail-edit:focus-visible {
+  outline: 2px solid ${PALETTE.peach};
+  outline-offset: 2px;
+}
 .mock-detail-section h2 {
   margin: 4px 0 4px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;

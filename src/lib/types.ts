@@ -25,6 +25,20 @@ export interface Style {
   /** Per-style manual override. When non-null, supplants the workbook mapping
    *  in attachFabricDetailsFromRows. Stored in styles.fabric_override (jsonb). */
   fabric_override?: Partial<FabricDetail> | null;
+  /** Per-style manual override of the parsed PDF spec. When non-null,
+   *  applySpecOverride layers these on top of the raw columns at fetch time so
+   *  the displayed spec uses the corrected values. Stored in
+   *  styles.spec_override (jsonb). */
+  spec_override?: StyleSpecOverride | null;
+}
+
+export interface StyleSpecOverride {
+  contents?: string;
+  construction?: string;
+  weight?: string;
+  fabric_no?: string;
+  division?: string;
+  designed_by?: string;
 }
 
 export interface Selection {

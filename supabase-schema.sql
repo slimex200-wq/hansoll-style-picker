@@ -18,7 +18,13 @@ create table styles (
   -- attachFabricDetailsFromRows supplants the matched workbook row(s) with a
   -- single FabricDetail built from this object. Edited via the /admin "Edit
   -- fabric" modal → PATCH /api/styles/[id]/fabric.
-  fabric_override jsonb
+  fabric_override jsonb,
+  -- Per-style manual override of the parsed PDF spec (contents, construction,
+  -- weight, fabric_no, division, designed_by). applySpecOverride layers these
+  -- on top of the raw columns at fetch time; the columns themselves stay as
+  -- the original PDF parse. Edited via the "Edit style" modal → PATCH
+  -- /api/styles/[id]/spec.
+  spec_override jsonb
 );
 
 -- 2. selections 테이블
