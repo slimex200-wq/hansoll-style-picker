@@ -149,26 +149,12 @@ export const HANDOFF_VIEW_CSS = `
   overflow: auto;
   padding: 20px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  /* auto-fill scales to whatever width the gallery pane actually has (the
+     detail pane next to it eats real estate), with a 360px floor so cards
+     never collapse into postage stamps on wide viewports. */
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   align-content: start;
   gap: 18px;
-}
-/* Cap the column count on wider viewports so cards stay readable next to the
-   permanent detail panel. */
-@media (min-width: 1400px) {
-  .mock-gallery {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-@media (min-width: 1700px) {
-  .mock-gallery {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-@media (min-width: 2100px) {
-  .mock-gallery {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
 }
 .mock-gallery-card {
   border: 1px solid ${PALETTE.rule};
