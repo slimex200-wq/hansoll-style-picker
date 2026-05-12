@@ -188,11 +188,25 @@ export const HANDOFF_VIEW_CSS = `
      with the inner hero. Hero (1:1) sits on top, body fills the remaining
      ~17%. */
   aspect-ratio: 1 / 1.17;
-  transition: border-color 100ms ease-out, box-shadow 100ms ease-out;
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 100ms ease-out;
+  /* will-change pre-promotes the card to its own layer so the hover lift
+     stays smooth even in a dense grid of 100+ cards. */
+  will-change: transform;
+}
+.mock-gallery-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(20, 18, 14, 0.14);
+  border-color: ${PALETTE.inkSoft};
+  /* Lift the hovered card above its neighbours so the PICK/HOLD/SKIP
+     overlay clearly belongs to this card, not the row below it. */
+  z-index: 2;
 }
 .mock-gallery-card.selected {
   border-color: ${PALETTE.peach};
   box-shadow: 0 0 0 3px ${PALETTE.peachBg};
+}
+.mock-gallery-card.selected:hover {
+  box-shadow: 0 0 0 3px ${PALETTE.peachBg}, 0 10px 24px rgba(20, 18, 14, 0.14);
 }
 .mock-gallery-hero {
   position: relative;
