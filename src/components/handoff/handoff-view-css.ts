@@ -183,6 +183,11 @@ export const HANDOFF_VIEW_CSS = `
   text-align: left;
   cursor: pointer;
   position: relative;
+  /* aspect-ratio on the card itself drives intrinsic height directly from
+     the column width, bypassing whatever sizing quirk the grid is doing
+     with the inner hero. Hero (1:1) sits on top, body fills the remaining
+     ~17%. */
+  aspect-ratio: 1 / 1.17;
   transition: border-color 100ms ease-out, box-shadow 100ms ease-out;
 }
 .mock-gallery-card.selected {
@@ -192,10 +197,13 @@ export const HANDOFF_VIEW_CSS = `
 .mock-gallery-hero {
   position: relative;
   width: 100%;
-  /* aspect-ratio on the hero itself (not on the inner .mock-visual) — this
-     pins the hero box to a square independent of the inner Image fill, so
-     the card never collapses to a banner strip. */
-  aspect-ratio: 1 / 1;
+  /* padding-top: 100% hack instead of aspect-ratio. CSS Grid's implicit
+     row sizing algorithm ignores aspect-ratio when computing row heights,
+     so the row collapses to body-only and the card is squashed. Padding
+     percentages are width-relative AND counted by the grid sizer, so this
+     reliably gives us a 1:1 hero box. */
+  height: 0;
+  padding-top: 100%;
   background: ${PALETTE.bg};
   overflow: hidden;
 }
