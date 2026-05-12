@@ -188,25 +188,35 @@ export const HANDOFF_VIEW_CSS = `
      with the inner hero. Hero (1:1) sits on top, body fills the remaining
      ~17%. */
   aspect-ratio: 1 / 1.17;
-  transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 100ms ease-out;
-  /* will-change pre-promotes the card to its own layer so the hover lift
-     stays smooth even in a dense grid of 100+ cards. */
-  will-change: transform;
+  transition: border-color 120ms ease-out;
+}
+/* Hover indicator: a thin peach bar at the top edge marks which card the
+   pointer is on without lifting the card or covering it with the action
+   overlay. Lifting/elevating raised the hovered card above its neighbours
+   and made adjacent cards unclickable; this stays in-flow and out of the
+   way. */
+.mock-gallery-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: ${PALETTE.peach};
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+  pointer-events: none;
+  z-index: 3;
+}
+.mock-gallery-card:hover::before {
+  opacity: 1;
 }
 .mock-gallery-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 24px rgba(20, 18, 14, 0.14);
   border-color: ${PALETTE.inkSoft};
-  /* Lift the hovered card above its neighbours so the PICK/HOLD/SKIP
-     overlay clearly belongs to this card, not the row below it. */
-  z-index: 2;
 }
 .mock-gallery-card.selected {
   border-color: ${PALETTE.peach};
   box-shadow: 0 0 0 3px ${PALETTE.peachBg};
-}
-.mock-gallery-card.selected:hover {
-  box-shadow: 0 0 0 3px ${PALETTE.peachBg}, 0 10px 24px rgba(20, 18, 14, 0.14);
 }
 .mock-gallery-hero {
   position: relative;
@@ -289,7 +299,12 @@ export const HANDOFF_VIEW_CSS = `
   pointer-events: none;
   z-index: 2;
 }
-.mock-gallery-card:hover .mock-gallery-actions.overlay,
+/* Action overlay only surfaces on keyboard focus or on the currently
+   selected card — hover used to trigger it too, but that turned the
+   overlay into visual noise across the whole grid as the user moved
+   the cursor around. Hover is now indicated by the thin peach bar at
+   the top of the card; PICK/HOLD/SKIP only when you've actually
+   landed on a card. */
 .mock-gallery-card:focus-within .mock-gallery-actions.overlay,
 .mock-gallery-card.selected .mock-gallery-actions.overlay {
   opacity: 1;
