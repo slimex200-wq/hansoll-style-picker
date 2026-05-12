@@ -188,46 +188,34 @@ export const HANDOFF_VIEW_CSS = `
      with the inner hero. Hero (1:1) sits on top, body fills the remaining
      ~17%. */
   aspect-ratio: 1 / 1.17;
-  transition: border-color 120ms ease-out;
+  transition: transform 160ms ease-out, box-shadow 160ms ease-out, border-color 120ms ease-out;
 }
-/* Hover indicator: a thin peach bar at the top edge marks which card the
-   pointer is on without lifting the card or covering it with the action
-   overlay. Lifting/elevating raised the hovered card above its neighbours
-   and made adjacent cards unclickable; this stays in-flow and out of the
-   way. */
-.mock-gallery-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: ${PALETTE.peach};
-  opacity: 0;
-  transition: opacity 120ms ease-out;
-  pointer-events: none;
-  z-index: 3;
-}
-.mock-gallery-card:hover::before {
-  opacity: 1;
-}
+/* Hover lift: just the card edges off the surface, no z-index bump so
+   adjacent cards stay clickable. -2px is small enough that the hovered
+   card doesn't actually overlap its neighbours' hit area. */
 .mock-gallery-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(20, 18, 14, 0.10);
   border-color: ${PALETTE.inkSoft};
 }
 .mock-gallery-card.selected {
   border-color: ${PALETTE.peach};
   box-shadow: 0 0 0 3px ${PALETTE.peachBg};
 }
+.mock-gallery-card.selected:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px ${PALETTE.peachBg}, 0 6px 14px rgba(20, 18, 14, 0.10);
+}
 .mock-gallery-hero {
   position: relative;
   width: 100%;
-  /* padding-top: 100% hack instead of aspect-ratio. CSS Grid's implicit
-     row sizing algorithm ignores aspect-ratio when computing row heights,
-     so the row collapses to body-only and the card is squashed. Padding
-     percentages are width-relative AND counted by the grid sizer, so this
-     reliably gives us a 1:1 hero box. */
-  height: 0;
-  padding-top: 100%;
+  /* aspect-ratio (not padding-top hack) — the card already has its own
+     aspect-ratio so grid row sizing is no longer an issue here, and using
+     real height + width makes inset:0/inset:bottom positioning behave
+     normally for the action overlay. The padding-top trick was leaving
+     the hero with layout height 0 + 100% padding, which dragged absolute
+     children (the PICK/HOLD/SKIP overlay) to a weird mid-card position. */
+  aspect-ratio: 1 / 1;
   background: ${PALETTE.bg};
   overflow: hidden;
 }
