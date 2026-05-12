@@ -146,6 +146,12 @@ export const HANDOFF_VIEW_CSS = `
 }
 .mock-gallery {
   flex: 1;
+  /* min-height: 0 lets the flex parent constrain us so overflow:auto actually
+     triggers. Without it, the gallery's default min-height: auto grows to fit
+     every card, the container blows past the viewport, and the scrollbar
+     never appears — cards end up looking squished as the browser tries to
+     cram them in. */
+  min-height: 0;
   overflow: auto;
   padding: 20px;
   display: grid;
