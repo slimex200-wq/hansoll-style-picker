@@ -146,21 +146,33 @@ export const HANDOFF_VIEW_CSS = `
 }
 .mock-gallery {
   flex: 1;
-  /* min-height: 0 lets the flex parent constrain us so overflow:auto actually
-     triggers. Without it, the gallery's default min-height: auto grows to fit
-     every card, the container blows past the viewport, and the scrollbar
-     never appears — cards end up looking squished as the browser tries to
-     cram them in. */
   min-height: 0;
   overflow: auto;
   padding: 20px;
   display: grid;
-  /* auto-fill scales to whatever width the gallery pane actually has (the
-     detail pane next to it eats real estate), with a 360px floor so cards
-     never collapse into postage stamps on wide viewports. */
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  /* Fixed column count instead of auto-fill — the previous auto-fill setup
+     interacted badly with the hero aspect-ratio (cards collapsed to banner
+     strips). Card width is now (gallery width / 4); height is set by the
+     hero box below. Narrower breakpoints reduce the column count instead of
+     shrinking cards. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-content: start;
   gap: 18px;
+}
+@media (max-width: 1500px) {
+  .mock-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1100px) {
+  .mock-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .mock-gallery {
+    grid-template-columns: 1fr;
+  }
 }
 .mock-gallery-card {
   border: 1px solid ${PALETTE.rule};
@@ -179,9 +191,21 @@ export const HANDOFF_VIEW_CSS = `
 }
 .mock-gallery-hero {
   position: relative;
+  width: 100%;
+  /* aspect-ratio on the hero itself (not on the inner .mock-visual) — this
+     pins the hero box to a square independent of the inner Image fill, so
+     the card never collapses to a banner strip. */
+  aspect-ratio: 1 / 1;
+  background: ${PALETTE.bg};
+  overflow: hidden;
 }
 .mock-gallery-hero .mock-visual {
-  aspect-ratio: 1 / 1;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Override the base .mock-visual 4/5 aspect — hero already sized us. */
+  aspect-ratio: auto;
 }
 .mock-gallery-hero .mock-visual-img {
   object-fit: cover;
