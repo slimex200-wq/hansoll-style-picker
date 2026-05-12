@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Memo, SelectionStatus, Style } from "@/lib/types";
 import { formatTimeAgo } from "@/lib/store";
+import StyleEditModal from "@/components/admin/StyleEditModal";
 import Mono from "./Mono";
 import StyleVisual from "./StyleVisual";
 import { STATUS_META, formatDisplayPrice, getFabricRows, joinParts } from "./palette";
@@ -21,6 +22,7 @@ export default function DetailPanel({
   onAddMemo,
   onLoadMoreMemos,
   onOpenLightbox,
+  onStyleSaved,
   fullscreen = false,
   onCloseFullscreen,
 }: {
@@ -36,9 +38,11 @@ export default function DetailPanel({
   onAddMemo?: (content: string) => Promise<void> | void;
   onLoadMoreMemos?: () => Promise<void> | void;
   onOpenLightbox?: () => void;
+  onStyleSaved?: () => Promise<void> | void;
   fullscreen?: boolean;
   onCloseFullscreen?: () => void;
 }) {
+  const [editing, setEditing] = useState(false);
   const [visualTab, setVisualTab] = useState<"garment" | "fabric" | "detail">("garment");
   const [memoDraft, setMemoDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -182,7 +186,19 @@ export default function DetailPanel({
 
       <div className="mock-detail-scroll">
         <section className="mock-detail-section">
-          <Mono muted>Style</Mono>
+          <div className="mock-detail-style-head">
+            <Mono muted>Style</Mono>
+            <button
+              type="button"
+              className="mock-detail-edit"
+              onClick={() => setEditing(true)}
+              aria-label={`Edit style ${style.id}`}
+              title="Edit style spec & fabric"
+            >
+              <Pencil size={12} />
+              <span>Edit{style.spec_override || style.fabric_override ? " ✱" : ""}</span>
+            </button>
+          </div>
           <h2>{style.id}</h2>
           <p>{joinParts(style.contents, style.construction, style.weight)}</p>
           {detailPrice && (
@@ -335,6 +351,16 @@ export default function DetailPanel({
           ) : null}
         </section>
       </div>
+
+      {editing && (
+        <StyleEditModal
+          style={style}
+          onClose={() => setEditing(false)}
+          onSaved={async () => {
+            await onStyleSaved?.();
+          }}
+        />
+      )}
     </aside>
   );
 }

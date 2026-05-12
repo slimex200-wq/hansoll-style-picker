@@ -70,6 +70,23 @@ export default function Home() {
     setCollectionFilter(param && param.trim() ? param.trim() : null);
   }, []);
 
+  // Re-fetch just the styles after an inline edit so spec_override and
+  // fabric_override land back in state without the loading flicker that
+  // loadData would trigger. Keeps selections/memos intact.
+  const refreshStyles = useCallback(async () => {
+    try {
+      const explicitCollection = collectionFilter ?? undefined;
+      const all = await fetchStyles(explicitCollection);
+      const resolved =
+        explicitCollection ??
+        pickLatestCollection([...new Set(all.map((s) => s.collection))]) ??
+        null;
+      setStyles(resolved ? all.filter((s) => s.collection === resolved) : all);
+    } catch (e) {
+      showToast(`Refresh failed: ${(e as Error).message}`, "error");
+    }
+  }, [collectionFilter]);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
@@ -672,6 +689,7 @@ export default function Home() {
                     ? () => setLightboxOpen(true)
                     : undefined
                 }
+                onStyleSaved={refreshStyles}
                 fullscreen={isMobile && mobileDetailOpen}
                 onCloseFullscreen={isMobile ? () => setMobileDetailOpen(false) : undefined}
               />

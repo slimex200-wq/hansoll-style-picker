@@ -9,9 +9,8 @@ import { fetchMemos, fetchSelections, fetchStyles } from "@/lib/api";
 import HandoffStyles from "@/components/handoff/HandoffStyles";
 import Mono from "@/components/handoff/Mono";
 import StyleImageUploader from "@/components/admin/StyleImageUploader";
-import FabricEditModal from "@/components/admin/FabricEditModal";
+import StyleEditModal from "@/components/admin/StyleEditModal";
 import ToastContainer, { showToast } from "@/components/Toast";
-import type { FabricDetail } from "@/lib/fabric-details";
 import { useIsMobile } from "@/lib/use-is-mobile";
 import {
   PALETTE,
@@ -344,9 +343,9 @@ export default function AdminPage() {
                               type="button"
                               className="admin-edit-fabric"
                               onClick={() => setEditingStyleId(style.id)}
-                              aria-label={`Edit fabric details for ${style.id}`}
+                              aria-label={`Edit style ${style.id}`}
                             >
-                              {style.fabric_override ? "Edit fabric ✱" : "Edit fabric"}
+                              {style.spec_override || style.fabric_override ? "Edit style ✱" : "Edit style"}
                             </button>
                           </div>
                           {total > 0 ? (
@@ -539,59 +538,27 @@ export default function AdminPage() {
       {editingStyleId && (() => {
         const target = styles.find((s) => s.id === editingStyleId);
         if (!target) return null;
-        // Pre-fill: existing override if set, else the first fabric mapping row.
-        const initial: Partial<FabricDetail> | null =
-          target.fabric_override ??
-          (target.fabric_details && target.fabric_details[0]
-            ? target.fabric_details[0]
-            : null);
         return (
-          <FabricEditModal
-            styleId={target.id}
-            initial={initial}
+          <StyleEditModal
+            style={target}
             onClose={() => setEditingStyleId(null)}
-            onSaved={(override) => {
-              setStyles((prev) =>
-                prev.map((s) =>
-                  s.id === target.id
-                    ? {
-                        ...s,
-                        fabric_override: override,
-                        // Drop the mapped fabric_details so the override (or workbook
-                        // fallback) is re-derived on next fetch. Local UI immediately
-                        // reflects the override-as-only-row pattern.
-                        fabric_details: override
-                          ? [
-                              {
-                                sourceSheet: "",
-                                pattern: "",
-                                option: "",
-                                fabricCode: "",
-                                supplier: "",
-                                construction: "",
-                                content: "",
-                                widthInch: "",
-                                weightGm2: "",
-                                priceYd: "",
-                                priceLb: "",
-                                finish: "",
-                                yarnDetail: "",
-                                comment: "",
-                                fabricCountry: "",
-                                originalText: "",
-                                ...override,
-                                styleId: s.id,
-                              } as FabricDetail,
-                            ]
-                          : s.fabric_details,
-                      }
-                    : s
-                )
-              );
+            onSaved={async ({ spec, fabric }) => {
+              // Refetch the styles list so spec_override flows back through
+              // applySpecOverride and the matched-fabric card re-derives.
+              try {
+                const param = typeof window !== "undefined"
+                  ? new URLSearchParams(window.location.search).get("collection")
+                  : null;
+                const collection = param && param.trim() ? param.trim() : undefined;
+                const next = await fetchStyles(collection);
+                setStyles(next);
+              } catch (e) {
+                showToast(`Refresh failed: ${(e as Error).message}`, "error");
+              }
               showToast(
-                override
-                  ? `Saved fabric override for ${target.id}`
-                  : `Cleared fabric override for ${target.id}`,
+                spec || fabric
+                  ? `Saved overrides for ${target.id}`
+                  : `Cleared overrides for ${target.id}`,
                 "success"
               );
             }}
